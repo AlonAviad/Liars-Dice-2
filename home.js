@@ -4,12 +4,9 @@ if (!('game' in localStorage)) {
 }
 
 function openGame() {
-  if (!('game' in localStorage)) {
+  if (!('game' in localStorage) || confirm('Old game will be lost. Do you want to continue?')) {
     window.location.href = 'game.html';
     localStorage.setItem('game', null);
-  }
-  else {
-    alert('Game will be lost');
   }
 }
 
