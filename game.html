@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles/general.css" />
+  <link rel="stylesheet" href="styles/buttons.css" />
+  <link rel="stylesheet" href="styles/images.css" />
+  <title>Liar's Dice</title>
+</head>
+<body>
+  <div class="table-container">
+    <img src="/images/table4.jpg" class="table">
+    <a class="menu-button exit" href="home.html">x</a>
+    <!-- Player 1 -->
+    <div class="player-grid player1">
+      <div class="bet" id="player1-bet"></div>
+      <div>
+      <img src="/images/cup.png" class="cup-image"/>
+      </div>
+      <div class="dice-container"></div>
+    </div>
+    <!-- Players -->
+    <!-- Player 2 -->
+    <div class="player-grid player2">
+      <div class="bet"></div>
+      <div class="cup-container js-player2">
+        <div class="square-container">
+        <div class="square"></div>
+        <div class="square"></div>
+        <div class="square"></div>
+        </div>
+        <div>
+        <img src="/images/cup.png" class="cup-image"/>
+        </div>
+      </div>
+    </div>
+    <!-- Player 3 -->
+    <div class="player-grid player3">
+      <div class="bet"></div>
+      <div class="cup-container js-player3">
+        <div class="square-container">
+          <div class="square"></div>
+          <div class="square"></div>
+        </div>
+        <div>
+        <img src="/images/cup.png" class="cup-image"/>
+        </div>
+      </div>
+    </div>
+    <!-- Player 4 -->
+    <div class="player-grid player4">
+      <div class="bet"></div>
+      <div class="cup-container js-player4">
+        <div class="square-container">
+          <div class="square"></div>
+          <div class="square"></div>
+          <div class="square"></div>
+          <div class="square"></div>
+          <div class="square"></div>
+        </div>
+        <div><img src="/images/cup.png" class="cup-image"/></div>
+      </div>
+    </div>
+    <!-- Player 5 -->
+    <div class="player-grid player5">
+      <div class="bet"></div>
+      <div class="cup-container js-player5">
+        <div class="square-container">
+          <div class="square"></div>
+          <div class="square"></div>
+          <div class="square"></div>
+          <div class="square"></div>
+        </div>
+        <div><img src="/images/cup.png" class="cup-image"/></div>
+      </div>
+    </div>
+    <!-- Player 6 -->
+    <div class="player-grid player6">
+      <div class="bet"></div>
+      <div class="cup-container js-player6">
+        <div class="square-container">
+          <div class="square"></div>
+        </div>
+        <div><img src="/images/cup.png" class="cup-image"/></div>
+      </div>
+    </div>
+    <!-- Players end -->
+    <div class="dice-in-game">Dice in game: 20</div>
+  </div>
+  <!-- Game Bar -->
+  <div class="game-bar">
+    <div><button class="menu-button addsub-game-bar bar-add" onclick=addOne()>+</button></div>
+    <div class="number"></div>
+    <div><button class="menu-button addsub-game-bar bar-sub" onclick=subOne()>-</button></div> 
+    <div>&#10005</div>
+    <div class="bar-dice-box">
+      <input type="image" src="images/dice-one.png" class= "dice-image bar one">
+      <input type="image" src="images/dice-two.png" class= "dice-image bar two">
+      <input type="image" src="images/dice-three.png" class= "dice-image bar three">
+      <input type="image" src="images/dice-four.png" class= "dice-image bar four">
+      <input type="image" src="images/dice-five.png" class= "dice-image bar five">
+      <input type="image" src="images/dice-six.png" class= "dice-image bar six">
+    </div>
+    <div id = "bet-buttons"></div>
+  </div>
+</body>
+<script src="game.js"></script>
+</html>

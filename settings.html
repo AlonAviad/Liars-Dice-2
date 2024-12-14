@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles/general.css">
+    <link rel="stylesheet" href="styles/buttons.css">
+    <title>Liar's Dice 2.0</title>
+</head>
+<body>
+    <h1>Settings</h1>
+    <div class="menu-container">
+      <div class="settings-grid">
+          <div class="setting-container">
+            <div class="bold-text">Player's name</div>
+            <div><input class="name-bar js-player-name" placeholder="Player 1"></div>
+            </div>
+          <div class="setting-container">
+            <div class="bold-text">Number of players</div>
+            <div class="num-of-players-container">
+              <div><button class="menu-button addorsub-button sub" onclick=subOne()>-</button></div> 
+              <div class="js-number-of-players">4</div>
+              <div><button class="menu-button addorsub-button add" onclick=addOne()>+</button></div>
+            </div>
+          </div>
+          <div class="setting-container">
+            <div class="bold-text">On The Spot</div>
+            <div class="checkbox-wrapper-6">
+              <input class="tgl tgl-light js-on-the-spot" id="cb1-6" type="checkbox" onclick=getDiceButton()>
+              <label class="tgl-btn" for="cb1-6"></div>    
+          </div>
+        <div class="setting-container">
+          <div class="bold-text">Get dice back</div>
+            <div class="checkbox-wrapper-6">
+            <input class="tgl tgl-light js-get-dice-back" id="cb2-6" type="checkbox">
+            <label class="tgl-btn" for="cb2-6"></div>
+          </div>
+        <div class="setting-container">
+          <div class="bold-text">Round start</div>
+          <div class="start-round-container">
+            <div><input type="checkbox" class="setting-checkbox js-loser-starts" onclick=switchToLoser() checked="true"></div>
+            <div>Losing player starts round</div> 
+            <div><input type="checkbox" class="setting-checkbox js-winner-starts" onclick=switchToWinner()></div>
+            <div>Winner starts round</div> 
+          </div>
+        </div>
+        <div class="save-button-container">
+          <a class="menu-button setting-button"  onclick=save() href="home.html">Save</a>
+          <a class="menu-button setting-button" href="home.html">Cancel</a>
+        </div>
+      </div>
+    </div>
+</body>
+<script src="settings.js"></script>
+</html>
