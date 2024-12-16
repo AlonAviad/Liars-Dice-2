@@ -39,7 +39,7 @@ function bet() {
   }
 }
 
-reveal = () => {
+function reveal() {
   playersTurn = false;
   betButtons();
   clearTable();
@@ -226,12 +226,9 @@ function placeHand(hand){
 }
 
 // Choose dice from bar
-document.querySelector(".one").addEventListener('click', () => {chooseDice('one')});
-document.querySelector(".two").addEventListener('click', () => {chooseDice('two')});
-document.querySelector(".three").addEventListener('click', () => {chooseDice('three')});
-document.querySelector(".four").addEventListener('click', () => {chooseDice('four')});
-document.querySelector(".five").addEventListener('click', () => {chooseDice('five')});
-document.querySelector(".six").addEventListener('click', () => {chooseDice('six')});
+document.querySelectorAll(".dice-image")
+  .forEach((die, i) => {die.addEventListener('click', () => {chooseDice(convertDiceType(i + 1))});
+});
 
 // Set keys
 document.addEventListener('keydown', (event) => { 
