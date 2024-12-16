@@ -1,10 +1,16 @@
 // Game variables
 let diceInGame = 20;
-let minBet = 5;
 let chosenDie = null;
-let playersTurn = false;
-let playerRoll = true;
-let numOfPlayers = 6
+let numOfPlayers = 6;
+let minBid = 0;
+let phase = null;
+let moves = [
+  [6, "three"],
+  [6, "six"],
+  [7, "five"],
+  [4, "one"],
+  [9, "three"],
+];
 
 // Game bar buttons
 const numberOfDice = document.querySelector(".number");
@@ -21,81 +27,85 @@ function subOne() {
   addSubButtons();
 }
 
-function bet() {
+function bid() {
   /*
-  Works only if ligal bet was given.
-  Put chosen bet on the table, 
+  Works only if ligal bid was given.
+  Put chosen bid on the table, 
   */
-  if (playersTurn == true && (numberOfDice.textContent != null && chosenDie != null)) {
-    placeBet();
+  if (numberOfDice.textContent != null && chosenDie != null) {
+    phase = "Round";
+    placeBid();
     removeChosenDie();
     numberOfDice.textContent = null;
     chosenDie = null;
-    playersTurn = true; 
     addSubButtons();
-    betButtons()
-    document.querySelector(`.player1`).classList.remove("player-turn")
-    round()
+    document.querySelector(`.player1`).classList.remove("player-turn");
+    document.getElementById("bid-buttons").innerHTML = "";
+    round();
   }
 }
 
 function reveal() {
-  playersTurn = false;
-  betButtons();
   clearTable();
-  document.querySelector(`.player${6}`).querySelector(".bet").innerHTML = `${moves[4][0]} &#10005 <img src="/images/dice-${moves[4][1]}.png" class="dice-image padding-left">`;
-  playerRoll = true
+  document.querySelector(".number").textContent = "";
+  document.getElementById("bid-buttons").innerHTML = "";
+  removeChosenDie();
+  document.querySelector(`.player${6}`)
+    .querySelector(
+      ".bid"
+    ).innerHTML = `${moves[4][0]} &#10005 <img src="/images/dice-${moves[4][1]}.png" class="dice-image padding-left">`;
+  playersRollPhase();
 }
 
-function roll() { // Roll dice and set the hand on the table
-  playerRoll = false;
+function roll() {
+  // Roll dice and set the hand on the table
+  phase = "Round";
+  chosenDie = null;
+  document.querySelectorAll(".dice-image").forEach((die) => die.disabled = false);
   clearTable();
   removeChosenDie();
-  numberOfDice.textContent = null;
   addSubButtons();
+  
+  numberOfDice.textContent = null;
   let hand = rollDice(5);
   placeHand(hand);
-  document.getElementById("bet-buttons").innerHTML="";  
-  round()
+  document.getElementById("bid-buttons").innerHTML = "";
+  round();
 }
 
 function chooseDice(die) {
-  minBet = findMinBet(die)
-  chosenDie == null ? numberOfDice.textContent = Math.max(minBet, numberOfDice.textContent) : numberOfDice.textContent = minBet;
+  minBid = findMinBid(die);
+  chosenDie == null
+    ? (numberOfDice.textContent = Math.max(minBid, numberOfDice.textContent))
+    : (numberOfDice.textContent = minBid);
   chosenDie = die;
   addSubButtons();
   removeChosenDie();
   document.querySelector(`.${die}`).classList.add("choose-die");
 }
 
-function placeBet() {
+function placeBid() {
   document.getElementById(
-    "player1-bet"
+    "player1-bid"
   ).innerHTML = `${numberOfDice.textContent} &#10005 <img src="/images/dice-${chosenDie}.png" class="dice-image padding-left">`;
 }
 
 function removeChosenDie() {
   let dice = ["one", "two", "three", "four", "five", "six"];
-  
+
   dice.forEach((num) => {
     document.querySelector(`.${num}`).classList.remove("choose-die");
   });
 }
 
-function betButtons() {
-  if (playersTurn == true) {
-  document.getElementById("bet-buttons").innerHTML = `<button class="menu-button bet-button" onclick=bet()>Bet</button>
-  <button class="menu-button bet-button" onclick=reveal()>Reveal</button>`
-  } else {
-    document.getElementById("bet-buttons").innerHTML="";
-  }
-}
-
-
-function addSubButtons(){
+function addSubButtons() {
   document.querySelector(".bar-sub").disabled = false;
   document.querySelector(".bar-add").disabled = false;
-  if (numberOfDice.textContent == 1 || (numberOfDice.textContent == minBet && chosenDie != null) || numberOfDice.textContent == '') {
+  if (
+    numberOfDice.textContent == 1 ||
+    (numberOfDice.textContent == minBid && chosenDie != null) ||
+    numberOfDice.textContent == ""
+  ) {
     document.querySelector(".bar-sub").disabled = true;
   }
   if (numberOfDice.textContent == diceInGame) {
@@ -103,79 +113,87 @@ function addSubButtons(){
   }
 }
 
-let moves = [[6, 'three'], [6, 'six'], [7, "five"], [4, "one"], [9, "three"]]
+const animationSpeed = 600;
 
-const animationSpeed = 2000;
-function round(){ // Full round ends with player's turn
-for (let i=0; i<numOfPlayers-1; i++) {
-  setTimeout(() => {
-    document.querySelector(`.player${i+2}`).querySelector(".bet").innerHTML = "";
-    document.querySelector(`.js-player${i+2}`).classList.add("player-turn")},
-    animationSpeed*i);
-  setTimeout(function() {
-    document.querySelector(`.js-player${i+2}`).classList.remove("player-turn");
-    document.querySelector(`.player${i+2}`).querySelector(".bet").innerHTML = `${moves[i][0]} &#10005 <img src="/images/dice-${moves[i][1]}.png" class="dice-image padding-left">`;
-  } ,animationSpeed*(i+1))
+function round() {
+  // Full round ends with player's turn
+  for (let i = 0; i < numOfPlayers - 1; i++) {
+    setTimeout(() => {
+      document
+        .querySelector(`.player${i + 2}`)
+        .querySelector(".bid").innerHTML = "";
+      document.querySelector(`.js-player${i + 2}`).classList.add("player-turn");
+    }, animationSpeed * i);
+    setTimeout(function () {
+      document
+        .querySelector(`.js-player${i + 2}`)
+        .classList.remove("player-turn");
+      document
+        .querySelector(`.player${i + 2}`)
+        .querySelector(
+          ".bid"
+        ).innerHTML = `${moves[i][0]} &#10005 <img src="/images/dice-${moves[i][1]}.png" class="dice-image padding-left">`;
+    }, animationSpeed * (i + 1));
   }
   setTimeout(() => {
-    playersTurn = true;
-    document.querySelector(`.player1`).classList.add("player-turn");
-    betButtons();
-    document.getElementById(
-      "player1-bet"
-    ).innerHTML=""},
-    animationSpeed*5);
+    playersTurnPhase();
+  }, animationSpeed * 5);
+  //   setTimeout(() => {
+  //     playersTurn = true;
+  //     document.querySelector(`.player1`).classList.add("player-turn");
+  //     bidButtons();
+  //     document.getElementById(
+  //       "player1-bid"
+  //     ).innerHTML=""},
+  //     animationSpeed*5);
 }
-
-
-clearTable() // Starts round when page up
 
 function convertDiceType(die) {
-  if (typeof(die) == "string"){
-    if (die == 'one'){
+  if (typeof die == "string") {
+    if (die == "one") {
       return 1;
     }
-    if (die == 'two'){
+    if (die == "two") {
       return 2;
     }
-    if (die == 'three'){
+    if (die == "three") {
       return 3;
     }
-    if (die == 'four'){
+    if (die == "four") {
       return 4;
     }
-    if (die == 'five'){
+    if (die == "five") {
       return 5;
     }
-    if (die == 'six'){
+    if (die == "six") {
       return 6;
     }
-  } else if (typeof(die) == "number") {
-    if (die == 1){
-      return 'one';
+  } else if (typeof die == "number") {
+    if (die == 1) {
+      return "one";
     }
-    if (die == 2){
-      return 'two';
+    if (die == 2) {
+      return "two";
     }
-    if (die == 3){
-      return 'three';
+    if (die == 3) {
+      return "three";
     }
-    if (die == 4){
-      return 'four';
+    if (die == 4) {
+      return "four";
     }
-    if (die == 5){
-      return 'five';
+    if (die == 5) {
+      return "five";
     }
-    if (die == 6){
-      return 'six';
+    if (die == 6) {
+      return "six";
     }
   }
 }
 
-function findMinBet (stringDie) {
-  const die = convertDiceType(stringDie)
-  const lastD = convertDiceType(moves[numOfPlayers-2][1])
-  const lastQ = moves[numOfPlayers-2][0]
+function findMinBid(stringDie) {
+  const die = convertDiceType(stringDie);
+  const lastD = convertDiceType(moves[numOfPlayers - 2][1]);
+  const lastQ = moves[numOfPlayers - 2][0];
   if (lastD == 1) {
     if (die == 1) {
       return lastQ + 1;
@@ -184,7 +202,7 @@ function findMinBet (stringDie) {
     }
   } else {
     if (die == 1) {
-      return Math.ceil(lastQ/2);
+      return Math.ceil(lastQ / 2);
     } else if (die <= lastD) {
       return lastQ + 1;
     } else {
@@ -193,61 +211,104 @@ function findMinBet (stringDie) {
   }
 }
 
-function clearTable() { // Need reformat after orginazing cups
-  document.querySelector(`.player1`).querySelector(".bet").innerHTML = "";
-  document.querySelector(`.player1`).classList.remove("player-turn")
-  for (let i = 2; i<numOfPlayers + 1; i++) {
-    document.querySelector(`.player${i}`).querySelector(".bet").innerHTML = "";
+function clearTable() {
+  // Needs reformat after orginazing cups
+  document.querySelector(`.player1`).querySelector(".bid").innerHTML = "";
+  document.querySelector(`.player1`).classList.remove("player-turn");
+  for (let i = 2; i < numOfPlayers + 1; i++) {
+    document.querySelector(`.player${i}`).querySelector(".bid").innerHTML = "";
     document.querySelector(`.js-player${i}`).classList.remove("player-turn");
   }
-  document.getElementById("bet-buttons").innerHTML = `<button class="menu-button bet-button" onclick=roll()>Roll</button>`
 }
 
 function rollDice(numberOfDice) {
-  let roll = []
+  let roll = [];
   for (let i = 0; i < numberOfDice; i++) {
     let die = Math.floor(Math.random() * 6 + 1);
     roll.push(die);
   }
   roll.sort();
   roll.forEach((die, i) => {
-    roll[i] = convertDiceType(die)
+    roll[i] = convertDiceType(die);
   });
   return roll;
 }
 
-function placeHand(hand){
-  document.querySelector(".dice-container").innerHTML = '';
-  let dice = ''
-  hand.forEach(d => {
- dice += `<img src="/images/dice-${d}.png" class="dice-image"></img>`
+function placeHand(hand) {
+  document.querySelector(".dice-container").innerHTML = "";
+  let dice = "";
+  hand.forEach((d) => {
+    dice += `<img src="/images/dice-${d}.png" class="dice-image"></img>`;
   });
   document.querySelector(".dice-container").innerHTML = dice;
 }
 
 // Choose dice from bar
-document.querySelectorAll(".dice-image")
-  .forEach((die, i) => {die.addEventListener('click', () => {chooseDice(convertDiceType(i + 1))});
+document.querySelectorAll(".dice-image").forEach((die, i) => {
+  die.addEventListener("click", () => {
+    chooseDice(convertDiceType(i + 1));
+  });
 });
 
 // Set keys
-document.addEventListener('keydown', (event) => { 
-  if (Number(event.key) <= 6) {
-    chooseDice(convertDiceType(Number(event.key)));
-  }
-  if (event.key == '+' && document.querySelector(".bar-add").disabled == false) {
-    addOne();
-  }
-  if (event.key == '-' && document.querySelector(".bar-sub").disabled == false) {
-    subOne();
-  }
-  if (event.key == 'Enter') {
-    if (playerRoll == true && !event.shiftKey) {
+function keydown(event) {
+  if (event.key == "Enter") {
+    if (phase == "playersRoll") {
       roll();
-    } else if (event.shiftKey && playersTurn == true) {
-      reveal();
-    } else if (playersTurn == true) {
-      bet();
+    } else if (phase == "playersTurn") {
+      if (event.shiftKey) {
+        reveal();
+      } else {
+        bid();
+      }
     }
   }
-});
+  if (Number(event.key) <= 6 && phase != "playersRoll") {
+    chooseDice(convertDiceType(Number(event.key)));
+  }
+  if (
+    event.key === "+" &&
+    !document.querySelector(".bar-add").disabled &&
+    phase != "playersRoll"
+  ) {
+    addOne();
+  }
+  if (
+    event.key === "-" &&
+    !document.querySelector(".bar-sub").disabled &&
+    phase != "playersRoll"
+  ) {
+    subOne();
+  } else if (phase === "playersRoll") {
+  }
+}
+document.addEventListener("keydown", keydown);
+
+// Game phases
+
+function playersTurnPhase() {
+  document.getElementById(
+    "bid-buttons"
+  ).innerHTML = `<button class="menu-button bid-button" onclick=bid()>Bid</button>
+  <button class="menu-button bid-button" onclick=reveal()>Call Liar</button>`; // Add Bid and Reveal buttons
+
+  document.querySelector(`.player1`).classList.add("player-turn");
+  document.getElementById("player1-bid").innerHTML = ""; // Adds turn mark and clear player's bid on table
+
+  phase = "playersTurn";
+}
+
+function playersRollPhase() {
+  phase = "playersRoll";
+  document.getElementById(
+    "bid-buttons"
+  ).innerHTML = `<button class="menu-button bid-button" onclick=roll()>Roll</button>`;
+
+  document.querySelector(".bar-sub").disabled = true;
+  document.querySelector(".bar-add").disabled = true;
+  document.querySelectorAll(".dice-image").forEach((die) => die.disabled = true);
+}
+
+// Initalization
+clearTable();
+playersRollPhase();
