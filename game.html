@@ -34,6 +34,7 @@
         <img src="/images/cup.png" class="cup-image"/>
         </div>
       </div>
+      <div class="dice-container"></div>
     </div>
     <!-- Player 3 -->
     <div class="player-grid player3">
@@ -47,6 +48,7 @@
         <img src="/images/cup.png" class="cup-image"/>
         </div>
       </div>
+      <div class="dice-container"></div>
     </div>
     <!-- Player 4 -->
     <div class="player-grid player4">
@@ -61,6 +63,7 @@
         </div>
         <div><img src="/images/cup.png" class="cup-image"/></div>
       </div>
+      <div class="dice-container"></div>
     </div>
     <!-- Player 5 -->
     <div class="player-grid player5">
@@ -74,6 +77,7 @@
         </div>
         <div><img src="/images/cup.png" class="cup-image"/></div>
       </div>
+      <div class="dice-container"></div>
     </div>
     <!-- Player 6 -->
     <div class="player-grid player6">
@@ -84,15 +88,16 @@
         </div>
         <div><img src="/images/cup.png" class="cup-image"/></div>
       </div>
+      <div class="dice-container"></div>
     </div>
     <!-- Players end -->
     <div class="dice-in-game">Dice in game: 20</div>
   </div>
   <!-- Game Bar -->
   <div class="game-bar">
-    <div><button class="menu-button addsub-game-bar bar-add" onclick=addOne()>+</button></div>
+    <div><button class="menu-button addsub-game-bar bar-add">+</button></div>
     <div class="number"></div>
-    <div><button class="menu-button addsub-game-bar bar-sub" onclick=subOne()>-</button></div> 
+    <div><button class="menu-button addsub-game-bar bar-sub">-</button></div> 
     <div>&#10005</div>
     <div class="bar-dice-box">
       <input type="image" src="images/dice-one.png" class= "dice-image bar one">
@@ -105,5 +110,5 @@
     <div id = "bid-buttons"></div>
   </div>
 </body>
-<script src="game.js"></script>
+<script type="module" src="./game.js"></script>
 </html>
