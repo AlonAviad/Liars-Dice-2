@@ -1,5 +1,5 @@
-const numberOfPlayers = JSON.parse(localStorage.getItem('settings')).numberOfPlayers;
-const moves = JSON.parse(localStorage.getItem('game')).moves;
+import { Game } from "./classes.js";
+// const game = JSON.parse(localStorage.getItem('game'));
 const numberOfDice = document.querySelector(".number");
 let chosenDie = null;
 
@@ -54,7 +54,7 @@ export function setPlayers() { // to be changed by positions
 }
 
 export function setDiceContainers() {
-  for (let i = 2; i <= numberOfPlayers; i++) {
+  for (let i = 2; i <= game.numberOfPlayers; i++) {
     document.querySelector(`.js-player${i}`).querySelector('.square-container').innerHTML = '<div class="square"></div>'.repeat(5);
   };
   }
@@ -67,7 +67,7 @@ export function clearTable() {
   // Needs reformat after orginazing cups
   document.querySelector(`.player1`).querySelector(".bid").innerHTML = "";
   document.querySelector(`.player1`).classList.remove("player-turn");
-  for (let i = 2; i <= numberOfPlayers; i++) {
+  for (let i = 2; i <= game.numberOfPlayers; i++) {
     document.querySelector(`.player${i}`).querySelector(".bid").innerHTML = "";
     document
       .querySelector(`.player${i}`)
@@ -86,8 +86,8 @@ export function placeBid() {
 
 
 export function findMinBid(die) {
-  const lastD = moves[numberOfPlayers - 2][1];
-  const lastQ = moves[numberOfPlayers - 2][0];
+  const lastD = players[numberOfPlayers - 1].bid[1];
+  const lastQ = players[numberOfPlayers - 1].bid[0];
   if (lastD == 1) {
     if (die == 1) {
       return lastQ + 1;
@@ -106,9 +106,19 @@ export function findMinBid(die) {
 };
 
 export function clearBids() {
-  players.forEach(player => {
+  game.players.forEach(player => {
     player.bid = null;    
   });
 };
 
+
+export function loadFromStorage() {
+  
+  const savedGame = JSON.parse(localStorage.getItem("game"));
+  return Game.fromJSON(savedGame);
+}
+
+export function updateStorage(game) {
+  localStorage.setItem("game", JSON.stringify(game.toJSON()));
+};
 //--------------------------------------------------

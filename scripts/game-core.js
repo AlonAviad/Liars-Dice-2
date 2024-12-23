@@ -1,16 +1,24 @@
 import * as ut from "./utils.js";
-import { Game } from "./classes.js";
 
-const game = new Game();
-const numberOfPlayers = JSON.parse(
-  localStorage.getItem("settings")
-).numberOfPlayers;
-const players = game.players;
+let game;
+let numberOfPlayers;
+let players;
 
-function gameInit() {
-  const firstToPlay = Math.floor(Math.random() * numberOfPlayers);
+export function initGame() {
+  
+  game = ut.loadFromStorage();
+
+  if (!game) {
+    return console.log("failed initialize");
+  }
+  
+  numberOfPlayers = game.numberOfPlayers;
+  players = game.players;
+
+  let firstToPlay = Math.floor(Math.random() * numberOfPlayers);
+  firstToPlay = 1
   startRound(firstToPlay);
-}
+};
 
 function startRound(firstToPlay) {
   /*
@@ -19,31 +27,35 @@ function startRound(firstToPlay) {
   rolls all dice
   place all bids (from starting player to user)
   */
-  ut.clearTable();
-  ut.clearBids();
-  players.forEach((player) => player.rollDice());
+ ut.clearBids();
+ console.log("Clear Bids")
+ players.forEach((player) => player.rollDice());
+ console.log("Dice roll")
+ console.log(game.players)
+ console.log(`Round started with player ${firstToPlay + 1}`)
+ ut.updateStorage(game);
 
   if (!firstToPlay) {
     return playerTurn();
   }
-
-  return continueRound(firstToPlay + 1);
-}
-
-function playerTurn() {
-  console.log(`player's turn`);
-  return continueRound();
+  return continueRound(firstToPlay);
 }
 
 function continueRound(start) {
   for (let i = start || 2; i < numberOfPlayers; i++) {
-    if (players[i].placebid() === "call") {
-      showHands(i); // awayt
-      EndRound(i);
-      break;
+    if (players[i].placeBid() === "call") {
+      // showHands(i); // awayt
+      // return EndRound(i);
+      return console.log(`player ${i + 1} calls`)
     }
+    console.log(`Player ${i + 1} placed bid`);
+    console.log(game.players[i].bid);
   }
   return playerTurn();
+}
+
+function playerTurn() {
+  return console.log(`player's turn`);
 }
 
 function EndRound(callingPlayer) {
