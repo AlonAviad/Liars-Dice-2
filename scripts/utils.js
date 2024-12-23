@@ -1,6 +1,7 @@
 import { Game } from "./classes.js";
-// const game = JSON.parse(localStorage.getItem('game'));
 const numberOfDice = document.querySelector(".number");
+const game = loadFromStorage();
+const numberOfPlayers = game.numberOfPlayers;
 let chosenDie = null;
 
 export function convertDiceType(die) {
@@ -86,8 +87,10 @@ export function placeBid() {
 
 
 export function findMinBid(die) {
-  const lastD = players[numberOfPlayers - 1].bid[1];
-  const lastQ = players[numberOfPlayers - 1].bid[0];
+  const lastD = 4;
+  const lastQ = 8;
+  // const lastD = game.players[numberOfPlayers - 1].bid[1];
+  // const lastQ = game.players[numberOfPlayers - 1].bid[0];
   if (lastD == 1) {
     if (die == 1) {
       return lastQ + 1;
@@ -111,9 +114,26 @@ export function clearBids() {
   });
 };
 
+export function addSubButtons() {
+  let minBid = findMinBid(chosenDie);
+  document.querySelector(".bar-sub").disabled = false;
+  document.querySelector(".bar-add").disabled = false;
+  if (
+    numberOfDice.textContent == 1 ||
+    (numberOfDice.textContent == minBid && chosenDie != null) ||
+    numberOfDice.textContent == ""
+  ) {
+    document.querySelector(".bar-sub").disabled = true;
+  }
+  if (numberOfDice.textContent == game.diceInGame) {
+    document.querySelector(".bar-add").disabled = true;
+  }
+}
 
 export function loadFromStorage() {
-  
+  if (!localStorage.getItem('game')) {
+    return;
+  };
   const savedGame = JSON.parse(localStorage.getItem("game"));
   return Game.fromJSON(savedGame);
 }

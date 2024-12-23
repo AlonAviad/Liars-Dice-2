@@ -17,10 +17,10 @@ export function initGame() {
 
   let firstToPlay = Math.floor(Math.random() * numberOfPlayers);
   firstToPlay = 1
-  startRound(firstToPlay);
+  return firstToPlay;
 };
 
-function startRound(firstToPlay) {
+export function startRound(firstToPlay) {
   /*
   Initialize round:
   clear table and moves
@@ -34,31 +34,28 @@ function startRound(firstToPlay) {
  console.log(game.players)
  console.log(`Round started with player ${firstToPlay + 1}`)
  ut.updateStorage(game);
-
-  if (!firstToPlay) {
-    return playerTurn();
-  }
-  return continueRound(firstToPlay);
 }
 
-function continueRound(start) {
+export function continueRound(start) {
   for (let i = start || 2; i < numberOfPlayers; i++) {
     if (players[i].placeBid() === "call") {
       // showHands(i); // awayt
       // return EndRound(i);
-      return console.log(`player ${i + 1} calls`)
+      console.log(`player ${i + 1} calls`)
+      return 0;
     }
     console.log(`Player ${i + 1} placed bid`);
     console.log(game.players[i].bid);
   }
-  return playerTurn();
+  return 1;
+  // returns 1 if game continues and 0 if dont
 }
 
-function playerTurn() {
-  return console.log(`player's turn`);
+export function playerTurn(bid) {
+  players[0].bid == bid;
 }
 
-function EndRound(callingPlayer) {
+function endRound(callingPlayer) {
   const chalengedPlayer =
     callingPlayer > 0 ? callingPlayer - 1 : numberOfPlayers - 1;
   let winner;
