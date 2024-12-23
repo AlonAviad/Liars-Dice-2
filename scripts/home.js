@@ -10,10 +10,11 @@ function openGame() {
   }
 }
 
-// Exit
+// Exit ---> Error???
 function exit() {
     localStorage.removeItem('settings');
-    localStorage.removeItem('game');
-    document.querySelector('.js-continue').remove();
-
+    if (localStorage.getItem('game') =! null) {
+      localStorage.removeItem('game');
+      document.querySelector('.js-continue').remove()
+    };
 }

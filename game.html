@@ -6,92 +6,15 @@
   <link rel="stylesheet" href="styles/general.css" />
   <link rel="stylesheet" href="styles/buttons.css" />
   <link rel="stylesheet" href="styles/images.css" />
+  <link rel="icon" href="data:," />
   <title>Liar's Dice</title>
 </head>
 <body>
   <div class="table-container">
     <img src="/images/table4.jpg" class="table">
     <a class="menu-button exit" href="home.html">x</a>
-    <!-- Player 1 -->
-    <div class="player-grid player1">
-      <div class="bid" id="player1-bid"></div>
-      <div>
-      <img src="/images/cup.png" class="cup-image"/>
-      </div>
-      <div class="dice-container"></div>
-    </div>
     <!-- Players -->
-    <!-- Player 2 -->
-    <div class="player-grid player2">
-      <div class="bid"></div>
-      <div class="cup-container js-player2">
-        <div class="square-container">
-        <div class="square"></div>
-        <div class="square"></div>
-        <div class="square"></div>
-        </div>
-        <div>
-        <img src="/images/cup.png" class="cup-image"/>
-        </div>
-      </div>
-      <div class="dice-container"></div>
-    </div>
-    <!-- Player 3 -->
-    <div class="player-grid player3">
-      <div class="bid"></div>
-      <div class="cup-container js-player3">
-        <div class="square-container">
-          <div class="square"></div>
-          <div class="square"></div>
-        </div>
-        <div>
-        <img src="/images/cup.png" class="cup-image"/>
-        </div>
-      </div>
-      <div class="dice-container"></div>
-    </div>
-    <!-- Player 4 -->
-    <div class="player-grid player4">
-      <div class="bid"></div>
-      <div class="cup-container js-player4">
-        <div class="square-container">
-          <div class="square"></div>
-          <div class="square"></div>
-          <div class="square"></div>
-          <div class="square"></div>
-          <div class="square"></div>
-        </div>
-        <div><img src="/images/cup.png" class="cup-image"/></div>
-      </div>
-      <div class="dice-container"></div>
-    </div>
-    <!-- Player 5 -->
-    <div class="player-grid player5">
-      <div class="bid"></div>
-      <div class="cup-container js-player5">
-        <div class="square-container">
-          <div class="square"></div>
-          <div class="square"></div>
-          <div class="square"></div>
-          <div class="square"></div>
-        </div>
-        <div><img src="/images/cup.png" class="cup-image"/></div>
-      </div>
-      <div class="dice-container"></div>
-    </div>
-    <!-- Player 6 -->
-    <div class="player-grid player6">
-      <div class="bid"></div>
-      <div class="cup-container js-player6">
-        <div class="square-container">
-          <div class="square"></div>
-        </div>
-        <div><img src="/images/cup.png" class="cup-image"/></div>
-      </div>
-      <div class="dice-container"></div>
-    </div>
-    <!-- Players end -->
-    <div class="dice-in-game">Dice in game: 20</div>
+    <!-- <div class="dice-in-game">Dice in game: 20</div> -->
   </div>
   <!-- Game Bar -->
   <div class="game-bar">
@@ -110,5 +33,5 @@
     <div id = "bid-buttons"></div>
   </div>
 </body>
-<script type="module" src="./game.js"></script>
+<script type="module" src="/scripts/game-view.js"></script>
 </html>
