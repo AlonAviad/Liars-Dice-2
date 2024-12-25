@@ -6,15 +6,19 @@ if (!('game' in localStorage)) {
 function openGame() {
   if (!('game' in localStorage) || confirm('Old game will be lost. Do you want to continue?')) {
     window.location.href = 'game.html';
-    localStorage.setItem('game', null);
+    localStorage.removeItem('game');
   }
 }
 
 // Exit ---> Error???
 function exit() {
-    localStorage.removeItem('settings');
-    if (localStorage.getItem('game') =! null) {
-      localStorage.removeItem('game');
-      document.querySelector('.js-continue').remove()
-    };
+    // localStorage.removeItem('settings');
+    // if (localStorage.getItem('game')) {
+    //   localStorage.removeItem('game');
+    //   document.querySelector('.js-continue').remove()
+    // };
+    localStorage.clear()
+    if (document.querySelector('.js-continue')){
+      document.querySelector('.js-continue').remove();
+    }
 }

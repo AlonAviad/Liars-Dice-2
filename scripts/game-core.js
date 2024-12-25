@@ -1,52 +1,50 @@
 import * as ut from "./utils.js";
 
 let game;
-let numberOfPlayers;
-let players;
+;
 
-export function initGame() {
-  
+export function initializeTable() {
   game = ut.loadFromStorage();
-
   if (!game) {
     return console.log("failed initialize");
   }
-  
-  numberOfPlayers = game.numberOfPlayers;
-  players = game.players;
 
-  let firstToPlay = Math.floor(Math.random() * numberOfPlayers);
+  let firstToPlay = Math.floor(Math.random() * game.numberOfPlayers);
   firstToPlay = 1
   return firstToPlay;
 };
 
 export function startRound(firstToPlay) {
-  /*
-  Initialize round:
-  clear table and moves
-  rolls all dice
-  place all bids (from starting player to user)
-  */
- ut.clearBids();
- console.log("Clear Bids")
- players.forEach((player) => player.rollDice());
- console.log("Dice roll")
- console.log(game.players)
- console.log(`Round started with player ${firstToPlay + 1}`)
- ut.updateStorage(game);
+  const game = ut.loadFromStorage();
+
+    /*
+    Initialize round:
+    clear table and moves
+    rolls all dice
+    place all bids (from starting player to user)
+    */
+  ut.clearBids();
+  console.log(game.players)
+  game.players.forEach((player) => player.rollDice());
+  console.log("Dice roll")
+  console.log(game.players)
+  console.log(`Round started with player ${firstToPlay + 1}`)
+  ut.updateStorage(game);
 }
 
 export function continueRound(start) {
-  for (let i = start || 2; i < numberOfPlayers; i++) {
-    if (players[i].placeBid() === "call") {
-      // showHands(i); // awayt
-      // return EndRound(i);
-      console.log(`player ${i + 1} calls`)
+  const game = ut.loadFromStorage();
+  for (let i = start || 2; i < game.numberOfPlayers; i++) {
+    if (game.players[i].placeBid() === "call") {
+      console.log(`player ${i + 1} calls`);
+      ut.updateStorage(game);
       return 0;
     }
     console.log(`Player ${i + 1} placed bid`);
     console.log(game.players[i].bid);
   }
+  console.log(game.players)
+  ut.updateStorage(game);
   return 1;
   // returns 1 if game continues and 0 if dont
 }
@@ -89,4 +87,5 @@ function removePlayer(i) {
 
 function updateGame() {
   localStorage.setItem("game", JSON.stringify(game));
+  console.log("game updated");
 }

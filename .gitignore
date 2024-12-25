@@ -1,5 +1,6 @@
 tests.html
 tests.js
 buttons.js
-# console-game.js
-# console-game.html
+ui-controller-old.js
+console-game.js
+console-game.html

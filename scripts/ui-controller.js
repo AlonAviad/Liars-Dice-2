@@ -1,110 +1,134 @@
 import * as ut from "./utils.js";
+import * as ctr from "./controls.js";
 import * as core from "./game-core.js";
 import { Game } from "./classes.js";
 
-// ----------Buttons-----------
-
-const numberOfDice = document.querySelector(".number");
 const addButton = document.querySelector(".bar-add");
 const subButton = document.querySelector(".bar-sub");
+const numberOfDice = document.querySelector(".number");
+let chosenDie;
 
-// Initalization
-localStorage.clear();
-ut.defaultSettings();
-console.log("set");
-const game = new Game();
-updateLocalStorage();
-// ut.clearTable();
-ut.setPlayers();
-ut.setDiceContainers();
-playersRollPhase();
-const myHand = game.players[0].hand;
-window.game = game;
+let game;
+initializeGameUI();
 
-// Game variables
-let chosenDie = null;
-let phase = null;
-const numberOfPlayers = JSON.parse(
-  localStorage.getItem("settings")
-).numberOfPlayers;
-
-function bid() {
-  /*
-  Works only if ligal bid was given.
-  Put chosen bid on the table, 
-  */
-  if (numberOfDice.textContent != null && chosenDie != null) {
-    phase = "Round";
-    placeBid();
-    numberOfDice.textContent = null;
-    chosenDie = null;
-    ut.addSubButtons();
-    document.querySelector(`.player1`).classList.remove("player-turn");
-    document.getElementById("bid-buttons").innerHTML = "";
-    round();
-  }
+async function initializeGameUI() {
+  game = await ut.initializeGame();
+  console.log(game);
+  setPlayers();
+  setDiceCounter();
+  document.addEventListener("keydown", ctr.keydown);
+  const firstToPlay = core.initializeTable();
+  round(firstToPlay);
 }
 
-function reveal() {
-  ut.clearTable();
-  document.querySelector(".number").textContent = "";
-  document.getElementById("bid-buttons").innerHTML = "";
-  document
-    .querySelector(`.player${game.numberOfPlayers}`)
-    .querySelector(
-      ".bid"
-    ).innerHTML = `${8} &#10005 <img src="/images/dice-${ut.convertDiceType(
-    4
-  )}.png" class="dice-image padding-left">`;
-  showHands();
-  setTimeout(() => playersRollPhase(), animationSpeed * numberOfPlayers);
-}
-
-function showHands(playerCalled) {
-  let dice;
-  const lastBid = [8, 4];
-  // const lastBid = game.players[playerCalled - 1].bid;
-  for (let i = playerCalled; i < numberOfPlayers + playerCalled; i++) {
-    const fixedIndex = (i + 1) % numberOfPlayers;
-    dice = "";
-    gameplayers[fixedIndex].hand.forEach((d) => {
-      d == lastBid[1] || d == 1
-        ? (dice += `<img src="/images/dice-${ut.convertDiceType(
-            d
-          )}.png" class="dice-image choose-die"></img>`)
-        : (dice += `<img src="/images/dice-${ut.convertDiceType(
-            d
-          )}.png" class="dice-image"></img>`);
-    });
-    setTimeout(() => {
-      document
-        .querySelector(`.${players[fixedIndex + 1].jsId}`)
-        .querySelector(".dice-container").innerHTML = dice; // needs to be combined with same function for player1
-    }, animationSpeed * (i - playerCalled));
-  }
-  const myHandDisplay = document.querySelector(".dice-container");
-  let countHand;
-}
-
-function roll() {
-  // Roll dice and set the hand on the table
+async function roll() {
+  ctr.placeRollButton();
+  const rollButton = document.querySelector(".roll");
+  await ctr.waitForClick([rollButton]);
   const rollSound = new Audio("images/rolling-dice-2-102706.mp3");
   rollSound.play();
-  game.players.forEach((player) => player.rollDice());
-  phase = "Round";
-  chosenDie = null;
-  document
-    .querySelectorAll(".dice-image")
-    .forEach((die) => (die.disabled = false));
-  ut.clearTable();
-  ut.addSubButtons();
-  numberOfDice.textContent = null;
-  placeHand(game.players[0].hand);
-  document.getElementById("bid-buttons").innerHTML = "";
-  round();
+  ctr.clearControls();
 }
 
-function placeHand(hand) {
+
+export async function round(firstToPlay) {
+  core.startRound(firstToPlay);
+  await roll();
+  console.log('round');
+  core.continueRound(firstToPlay);
+  game = ut.loadFromStorage();
+  console.log(game.players)
+  await showBids();
+}
+
+async function playMove() {
+  document.getElementById(
+    "bid-buttons"
+  ).innerHTML = `<button class="menu-button bid">Bid</button>
+  <button class="menu-button bid-button reveal">Call Liar</button>`;
+  document.querySelector(".bid-button").addEventListener("click", bid);
+  document.querySelector(".reveal").addEventListener("click", reveal);
+  // Add Bid and Reveal buttons
+
+  document.querySelector(`.player1`).classList.add("player-turn");
+  document.getElementById("player1-bid").innerHTML = ""; // Adds turn mark and clear player's bid on table
+}
+
+function setPlayers() { // to be changed by positions
+    let players = 
+      `<img src="/images/table4.jpg" class="table">
+      <a class="menu-button exit" href="home.html">x</a>
+      <div class="player-grid player1">
+      <div class="bid" id="player1-bid"></div>
+      <div>
+      <img src="/images/cup.png" class="cup-image"/>
+      </div>
+      <div class="dice-container"></div>
+    </div>`;
+    for (let i = 2; i <= game.numberOfPlayers; i++) {
+      players +=
+        `<div class="player-grid player${i}">
+        <div class="bid"></div>
+        <div class="cup-container js-player${i}">
+          <div class="square-container"></div>
+          <div>
+          <img src="/images/cup.png" class="cup-image"/>
+          </div>
+        </div>
+        <div class="dice-container"></div>
+      </div>`
+    };
+    document.querySelector('.table-container').innerHTML = players;
+}
+
+  
+function clearTable() {
+  // Needs reformat after orginazing cups
+  document.querySelector(`.player1`).querySelector(".bid").innerHTML = "";
+  document.querySelector(`.player1`).classList.remove("player-turn");
+  for (let i = 2; i <= game.numberOfPlayers; i++) {
+    document.querySelector(`.player${i}`).querySelector(".bid").innerHTML = "";
+    document
+      .querySelector(`.player${i}`)
+      .querySelector(".dice-container").innerHTML = "";
+    document.querySelector(`.js-player${i}`).classList.remove("player-turn");
+  }
+}
+
+function setDiceCounter() {
+  for (let i = 2; i <= game.numberOfPlayers; i++) {
+    document.querySelector(`.js-player${i}`).querySelector('.square-container').innerHTML = '<div class="square"></div>'.repeat(5);
+  };
+}
+
+function placeBid() {
+  document.getElementById(
+    "player1-bid"
+  ).innerHTML = `${numberOfDice.textContent} &#10005 <img src="/images/dice-${chosenDie}.png" class="dice-image padding-left">`;
+}
+    
+function clearBids() {
+  game.players.forEach(player => {
+    player.bid = null;    
+  });
+};
+
+// function rollButton() {
+//   const rollSound = new Audio("images/rolling-dice-2-102706.mp3");
+//   rollSound.play();
+//   game.players.forEach((player) => player.rollDice());
+//   chosenDie = null;
+//   // document
+//     // .querySelectorAll(".dice-image")
+//     // .forEach((die) => (die.disabled = false));
+//   clearTable();
+//   ctr.addSubButtons();
+//   numberOfDice.textContent = null;
+//   placeHand(game.players[0].hand);
+//   document.getElementById("bid-buttons").innerHTML = "";
+// }
+
+export function placeHand(hand) {
   document.querySelector(".dice-container").innerHTML = "";
   let dice = "";
   hand.forEach((d) => {
@@ -115,101 +139,41 @@ function placeHand(hand) {
   document.querySelector(".dice-container").innerHTML = dice;
 }
 
-// Game phases
-
-function playersTurnPhase() {
-  document.getElementById(
-    "bid-buttons"
-  ).innerHTML = `<button class="menu-button bid-button">Bid</button>
-  <button class="menu-button bid-button reveal">Call Liar</button>`;
-  document.querySelector(".bid-button").addEventListener("click", bid);
-  document.querySelector(".reveal").addEventListener("click", reveal);
-  // Add Bid and Reveal buttons
-
-  document.querySelector(`.player1`).classList.add("player-turn");
-  document.getElementById("player1-bid").innerHTML = ""; // Adds turn mark and clear player's bid on table
-
-  phase = "playersTurn";
-}
-
-function playersRollPhase() {
-  document.getElementById(
-    "bid-buttons"
-  ).innerHTML = `<button class="menu-button bid-button roll">Roll</button>`;
-  document.querySelector(".roll").addEventListener("click", roll);
-
-  subButton.disabled = true;
-  addButton.disabled = true;
-  document
-    .querySelectorAll(".dice-image")
-    .forEach((die) => (die.disabled = true));
-}
-
-const animationSpeed = 600;
-
-function round() {
-  // Full round ends with player's turn
-  for (let i = 0; i < numberOfPlayers - 1; i++) {
-    setTimeout(() => {
-      document
-        .querySelector(`.player${i + 2}`)
+async function showBids() {
+  const game = ut.loadFromStorage();
+  for (let i = 1; i < game.numberOfPlayers; i++) {
+    console.log(`bid:`,game.players[i].bid)
+    await new Promise((resolve) => {
+        // set player's turn mark
+        document
+        .querySelector(`.player${i + 1}`)
         .querySelector(".bid").innerHTML = "";
-      document.querySelector(`.js-player${i + 2}`).classList.add("player-turn");
-    }, animationSpeed * i);
-    setTimeout(() => {
-      document
-        .querySelector(`.js-player${i + 2}`)
-        .classList.remove("player-turn");
-      document
-        .querySelector(`.player${i + 2}`)
+        document.querySelector(`.js-player${i + 1}`).classList.add("player-turn");
+      setTimeout(() => {
+        document
+          .querySelector(`.js-player${i + 1}`)
+          .classList.remove("player-turn");
+        // show player's bid or call
+      if (game.players[i].bid == 'call') {
+        document
+        .querySelector(`.player${i + 1}`)
         .querySelector(
           ".bid"
-        ).innerHTML = `${8} &#10005 <img src="/images/dice-${ut.convertDiceType(
-        4
-      )}.png" class="dice-image padding-left">`;
-    }, animationSpeed * (i + 1));
+        ).innerHTML = "Called Liar!"
+        resolve();
+      } else {
+        document
+          .querySelector(`.player${i + 1}`)
+          .querySelector(
+            ".bid"
+          ).innerHTML = `${game.players[i].bid[0]} &#10005 <img src="/images/dice-${ut.convertDiceType(
+            game.players[i].bid[1]
+        )}.png" class="dice-image padding-left">`;
+        resolve();
+      }
+      }, 600); // 1-second interval
+    });
+    if (game.players[i].bid == 'call')
+      break;
   }
-  setTimeout(() => {
-    playersTurnPhase();
-  }, animationSpeed * 5);
 }
-
-function showBids() {
-  let delay = 0;
-  game.players.forEach((player, i) => {
-    if (player.bid == null) {
-      return;
-    }
-    setTimeout(() => {
-      document
-        .querySelector(`.player${i + 1}`)
-        .querySelector(".bid").innerHTML = "";
-      document.querySelector(`.js-player${i + 1}`).classList.add("player-turn");
-    }, animationSpeed * delay);
-    setTimeout(() => {
-      document
-        .querySelector(`.js-player${i + 1}`)
-        .classList.remove("player-turn");
-      document
-        .querySelector(`.player${i + 1}`)
-        .querySelector(".bid").innerHTML = `${
-        player.bid[0]
-      } &#10005 <img src="/images/dice-${ut.convertDiceType(
-        player.bid[1]
-      )}.png" class="dice-image padding-left">`;
-    }, animationSpeed * (delay + 1));
-    delay++;
-  });
-} // fixed
-
-function updateLocalStorage() {
-  localStorage.setItem("game", JSON.stringify(game));
-}
-
-// if (!localStorage.getItem('game')) {
-//     const game = new Game();
-//     ut.updateStorage(game);
-// }
-window.game = ut.loadFromStorage();
-
-let playerStarting = core.initGame(); // set game and choses player to start
