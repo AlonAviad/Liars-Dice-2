@@ -14,27 +14,18 @@ export function initializeTable() {
   return firstToPlay;
 };
 
-export function startRound(firstToPlay) {
-  const game = ut.loadFromStorage();
-
-    /*
-    Initialize round:
-    clear table and moves
-    rolls all dice
-    place all bids (from starting player to user)
-    */
+export function startRound() {
   ut.clearBids();
-  console.log(game.players)
+  const game = ut.loadFromStorage();
   game.players.forEach((player) => player.rollDice());
-  console.log("Dice roll")
-  console.log(game.players)
-  console.log(`Round started with player ${firstToPlay + 1}`)
   ut.updateStorage(game);
+  console.log("round started");
+  return;
 }
 
 export function continueRound(start) {
   const game = ut.loadFromStorage();
-  for (let i = start || 2; i < game.numberOfPlayers; i++) {
+  for (let i = start || 1; i < game.numberOfPlayers; i++) {
     if (game.players[i].placeBid() === "call") {
       console.log(`player ${i + 1} calls`);
       ut.updateStorage(game);
@@ -53,7 +44,7 @@ export function playerTurn(bid) {
   players[0].bid == bid;
 }
 
-function endRound(callingPlayer) {
+export function endRound(callingPlayer) {
   const chalengedPlayer =
     callingPlayer > 0 ? callingPlayer - 1 : numberOfPlayers - 1;
   let winner;

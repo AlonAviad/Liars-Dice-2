@@ -18,7 +18,7 @@ async function initializeGameUI() {
   setDiceCounter();
   document.addEventListener("keydown", ctr.keydown);
   const firstToPlay = core.initializeTable();
-  round(firstToPlay);
+  newRound(firstToPlay);
 }
 
 async function roll() {
@@ -30,33 +30,54 @@ async function roll() {
   ctr.clearControls();
 }
 
+async function newRound(firstToPlay) {
+  await roll();
+  clearTable();
+  core.startRound();
+  round(firstToPlay);
+}
 
 export async function round(firstToPlay) {
-  core.startRound(firstToPlay);
-  await roll();
-  console.log('round');
-  core.continueRound(firstToPlay);
+  let cont = core.continueRound(firstToPlay);
   game = ut.loadFromStorage();
-  console.log(game.players)
+  console.log(game.players);
   await showBids();
+  if (cont) {
+    await playMove();
+  } else {
+    console.log("end round");
+    newRound();
+  }
 }
 
 async function playMove() {
-  document.getElementById(
-    "bid-buttons"
-  ).innerHTML = `<button class="menu-button bid">Bid</button>
-  <button class="menu-button bid-button reveal">Call Liar</button>`;
-  document.querySelector(".bid-button").addEventListener("click", bid);
-  document.querySelector(".reveal").addEventListener("click", reveal);
-  // Add Bid and Reveal buttons
+  ctr.placeMoveButtons();
+  const bidButton = document.querySelector(".bid-button.bid");
+  const callButton = document.querySelector(".reveal");
 
-  document.querySelector(`.player1`).classList.add("player-turn");
-  document.getElementById("player1-bid").innerHTML = ""; // Adds turn mark and clear player's bid on table
+  // Set data-choice attributes
+  bidButton.dataset.choice = "bid";
+  callButton.dataset.choice = "call";
+
+  const move = await ctr.waitForClick([bidButton, callButton]);
+
+  if (move == "bid") {
+    console.log("bid");
+    placeBid();
+    ctr.clearControls();
+    core.continueRound();
+  } else if (move == "call") {
+    game.players[0].bid = "call";
+    ut.updateStorage(game);
+    console.log("call");
+    ctr.clearControls();
+    newRound();
+  }
 }
 
-function setPlayers() { // to be changed by positions
-    let players = 
-      `<img src="/images/table4.jpg" class="table">
+function setPlayers() {
+  // to be changed by positions
+  let players = `<img src="/images/table4.jpg" class="table">
       <a class="menu-button exit" href="home.html">x</a>
       <div class="player-grid player1">
       <div class="bid" id="player1-bid"></div>
@@ -65,9 +86,8 @@ function setPlayers() { // to be changed by positions
       </div>
       <div class="dice-container"></div>
     </div>`;
-    for (let i = 2; i <= game.numberOfPlayers; i++) {
-      players +=
-        `<div class="player-grid player${i}">
+  for (let i = 2; i <= game.numberOfPlayers; i++) {
+    players += `<div class="player-grid player${i}">
         <div class="bid"></div>
         <div class="cup-container js-player${i}">
           <div class="square-container"></div>
@@ -76,12 +96,11 @@ function setPlayers() { // to be changed by positions
           </div>
         </div>
         <div class="dice-container"></div>
-      </div>`
-    };
-    document.querySelector('.table-container').innerHTML = players;
+      </div>`;
+  }
+  document.querySelector(".table-container").innerHTML = players;
 }
 
-  
 function clearTable() {
   // Needs reformat after orginazing cups
   document.querySelector(`.player1`).querySelector(".bid").innerHTML = "";
@@ -97,36 +116,27 @@ function clearTable() {
 
 function setDiceCounter() {
   for (let i = 2; i <= game.numberOfPlayers; i++) {
-    document.querySelector(`.js-player${i}`).querySelector('.square-container').innerHTML = '<div class="square"></div>'.repeat(5);
-  };
+    document
+      .querySelector(`.js-player${i}`)
+      .querySelector(".square-container").innerHTML =
+      '<div class="square"></div>'.repeat(5);
+  }
 }
 
 function placeBid() {
+  game.players[0].bid = [numberOfDice.textContent, chosenDie];
+  console.log(game.players[0].bid);
+  ut.updateStorage(game);
   document.getElementById(
     "player1-bid"
   ).innerHTML = `${numberOfDice.textContent} &#10005 <img src="/images/dice-${chosenDie}.png" class="dice-image padding-left">`;
 }
-    
-function clearBids() {
-  game.players.forEach(player => {
-    player.bid = null;    
-  });
-};
 
-// function rollButton() {
-//   const rollSound = new Audio("images/rolling-dice-2-102706.mp3");
-//   rollSound.play();
-//   game.players.forEach((player) => player.rollDice());
-//   chosenDie = null;
-//   // document
-//     // .querySelectorAll(".dice-image")
-//     // .forEach((die) => (die.disabled = false));
-//   clearTable();
-//   ctr.addSubButtons();
-//   numberOfDice.textContent = null;
-//   placeHand(game.players[0].hand);
-//   document.getElementById("bid-buttons").innerHTML = "";
-// }
+function clearBids() {
+  game.players.forEach((player) => {
+    player.bid = null;
+  });
+}
 
 export function placeHand(hand) {
   document.querySelector(".dice-container").innerHTML = "";
@@ -142,38 +152,34 @@ export function placeHand(hand) {
 async function showBids() {
   const game = ut.loadFromStorage();
   for (let i = 1; i < game.numberOfPlayers; i++) {
-    console.log(`bid:`,game.players[i].bid)
     await new Promise((resolve) => {
-        // set player's turn mark
-        document
+      // set player's turn mark
+      document
         .querySelector(`.player${i + 1}`)
         .querySelector(".bid").innerHTML = "";
-        document.querySelector(`.js-player${i + 1}`).classList.add("player-turn");
+      document.querySelector(`.js-player${i + 1}`).classList.add("player-turn");
       setTimeout(() => {
         document
           .querySelector(`.js-player${i + 1}`)
           .classList.remove("player-turn");
         // show player's bid or call
-      if (game.players[i].bid == 'call') {
-        document
-        .querySelector(`.player${i + 1}`)
-        .querySelector(
-          ".bid"
-        ).innerHTML = "Called Liar!"
-        resolve();
-      } else {
-        document
-          .querySelector(`.player${i + 1}`)
-          .querySelector(
-            ".bid"
-          ).innerHTML = `${game.players[i].bid[0]} &#10005 <img src="/images/dice-${ut.convertDiceType(
+        if (game.players[i].bid == "call") {
+          document
+            .querySelector(`.player${i + 1}`)
+            .querySelector(".bid").innerHTML = "Called Liar!";
+          resolve();
+        } else {
+          document
+            .querySelector(`.player${i + 1}`)
+            .querySelector(".bid").innerHTML = `${
+            game.players[i].bid[0]
+          } &#10005 <img src="/images/dice-${ut.convertDiceType(
             game.players[i].bid[1]
-        )}.png" class="dice-image padding-left">`;
-        resolve();
-      }
+          )}.png" class="dice-image padding-left">`;
+          resolve();
+        }
       }, 600); // 1-second interval
     });
-    if (game.players[i].bid == 'call')
-      break;
+    if (game.players[i].bid == "call") break;
   }
 }

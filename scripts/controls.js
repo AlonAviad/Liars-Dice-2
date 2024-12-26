@@ -7,28 +7,10 @@ const addButton = document.querySelector(".bar-add");
 const subButton = document.querySelector(".bar-sub");
 const numberOfDice = document.querySelector(".number");
 let minBid;
-let chosenDie;
+export let chosenDie;
 
-function removeChosenDie() {
-    const dice = ["one", "two", "three", "four", "five", "six"];
-  
-    dice.forEach((num) => {
-      document.querySelector(`.${num}`).classList.remove("choose-die");
-    });
-  }
-function chooseDice(die) {
-minBid = ut.findMinBid(ut.convertDiceType(die));
-chosenDie == null
-    ? (numberOfDice.textContent = Math.max(minBid, numberOfDice.textContent))
-    : (numberOfDice.textContent = minBid);
-chosenDie = die;
-addSubButtons();
-removeChosenDie();
-document.querySelector(`.${die}`).classList.add("choose-die");
-};
 
 // --------------- Set keys ------------------------
-subButton.disabled = true;
 
 function addOne() {
   numberOfDice.textContent++;
@@ -41,13 +23,40 @@ function subOne() {
 };
 
 // Choose dice from bar
-document.querySelectorAll(".dice-image").forEach((die, i) => {
-  die.addEventListener("click", () => {
-    chooseDice(ut.convertDiceType(i + 1));
+function diceButtons() {
+  document.querySelectorAll(".dice-image.bar").forEach((die, i) => {
+    die.disabled = false;
+    die.addEventListener("click", () => {
+      chooseDice(ut.convertDiceType(i + 1));
+    });
   });
-});
+}
 
-function addSubButtons() { // Enable or disable add and sub bottons
+function removeChosenDie() {
+    const dice = ["one", "two", "three", "four", "five", "six"];
+  
+    dice.forEach((num) => {
+      document.querySelector(`.${num}`).classList.remove("choose-die");
+    });
+  }
+
+function chooseDice(die) {
+minBid = ut.findMinBid(ut.convertDiceType(die));
+chosenDie == null
+    ? (numberOfDice.textContent = Math.max(minBid, numberOfDice.textContent))
+    : (numberOfDice.textContent = minBid);
+chosenDie = die;
+addSubButtons();
+removeChosenDie();
+document.querySelector(`.${die}`).classList.add("choose-die");
+
+const bidButton = document.querySelector(".bid-button.bid");
+
+bidButton.disabled = false;
+};
+
+export function addSubButtons() { // Enable or disable add and sub bottons
+    const game = ut.loadFromStorage();
     subButton.disabled = false;
     addButton.disabled = false;
     if (
@@ -87,21 +96,6 @@ export function keydown(event) {
 }
 
 
-// export function clickRoll() {
-  // const rollSound = new Audio("images/rolling-dice-2-102706.mp3");
-  // rollSound.play();
-  // game.players.forEach((player) => player.rollDice());
-  // chosenDie = null;
-  // document
-  //   .querySelectorAll(".dice-image")
-  //   .forEach((die) => (die.disabled = false));
-  // addSubButtons();
-  // numberOfDice.textContent = null;
-  // ui.placeHand(game.players[0].hand);
-  // document.getElementById("bid-buttons").innerHTML = "";
-  // ui.startRound();
-// }
-
 export function waitForClick(buttons) {
   return new Promise((resolve) => {
     const handleClick = (event) => {
@@ -130,11 +124,37 @@ export function placeRollButton() {
     .forEach((die) => (die.disabled = true));
 }
 
+
+export function placeMoveButtons() {
+  document.getElementById(
+    "bid-buttons"
+  ).innerHTML = `<button class="menu-button bid-button bid">Bid</button>
+  <button class="menu-button bid-button reveal">Call Liar</button>`
+  document.querySelector(`.player1`).classList.add("player-turn");
+  document.getElementById("player1-bid").innerHTML = ""; // Adds turn mark and clear player's bid on table
+  
+  const bidButton = document.querySelector(".bid-button.bid");
+
+  bidButton.disabled = true;
+
+  addSubButtons();
+  diceButtons();
+}
+
+
 export function clearControls() {
   chosenDie = null;
-  numberOfDice.textContent = null;
+  numberOfDice.textContent = "";
   document.getElementById("bid-buttons").innerHTML = "";
+  document.querySelectorAll(".dice-image.bar").forEach((die, i) => {
+    die.disabled = true;
+  });
+  addButton.disabled = true;
+  subButton.disabled = true;
+
+  removeChosenDie();
 }
 
 addButton.addEventListener("click", addOne);
 subButton.addEventListener("click", subOne);
+

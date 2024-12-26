@@ -30,10 +30,9 @@ export function diceCounter () {
 
 
 export function findMinBid(die) {
-  const lastD = 4;
-  const lastQ = 8;
-  // const lastD = game.players[numberOfPlayers - 1].bid[1];
-  // const lastQ = game.players[numberOfPlayers - 1].bid[0];
+  const game = loadFromStorage();
+  const lastD = game.players[game.numberOfPlayers - 1].bid[1];
+  const lastQ = game.players[game.numberOfPlayers - 1].bid[0];
   if (lastD == 1) {
     if (die == 1) {
       return lastQ + 1;
@@ -84,6 +83,7 @@ export function clearBids() {
   game.players.forEach(player => {
     player.bid = null;
   });
+  updateStorage(game);
 }
 
 //--------------------------------------------------

@@ -50,6 +50,10 @@
   margin: 15px;
 }
 
+.bid-button:disabled {
+  background: linear-gradient(-180deg, #e6e8e9 0%, #849297 100%);
+}
+
 .addsub-game-bar {
   font-size: 48px;
   align-items: center;
