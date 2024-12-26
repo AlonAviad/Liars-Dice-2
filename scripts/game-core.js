@@ -33,7 +33,7 @@ export function continueRound(start) {
       ut.updateStorage(game);
       return i;
     }
-    console.log(`Player ${i + 1} placed bid: ${game.players[i].bid}`);
+    // console.log(`Player ${i + 1} placed bid: ${game.players[i].bid}`);
   }
   ut.updateStorage(game);
   return 0;
@@ -45,38 +45,56 @@ export function playerTurn(bid) {
 }
 
 export function endRound(callingPlayer) {
-  const chalengedPlayer =
-    callingPlayer > 0 ? callingPlayer - 1 : numberOfPlayers - 1;
+  const game = ut.loadFromStorage();
   let winner;
   let loser;
-
   if (checkWinner(callingPlayer)) {
     winner = callingPlayer;
-    loser = chalengedPlayer;
+    loser = (callingPlayer + game.numberOfPlayers - 1) % game.numberOfPlayers;
   } else {
-    winner = chalengedPlayer;
+    winner = (callingPlayer + game.numberOfPlayers - 1) % game.numberOfPlayers;
     loser = callingPlayer;
   }
-
-  if (players[loser].numberOfDice-- == 0) {
+  game.players[loser].numberOfDice--;
+  game.diceInGame--;
+  if (game.players[loser].numberOfDice == 0) {
     removePlayer(loser);
   }
-  startRound(winner); // may start with wrong player -> needs checking
+  ut.updateStorage(game);
+  if (game.settings.loserStarts) {
+    return loser;
+  }
+  return winner;
 }
 
-function checkWinner(callingPlayer) {
-  /*
-    returns "true" if calling player wins
-  */
+export function checkWinner(playerCalled) {
+  //  returns "true" if calling player wins
+  const game = ut.loadFromStorage();
+  const lastPlayerToBid = (playerCalled + game.numberOfPlayers - 1) % game.numberOfPlayers; 
+  const lastBid = game.players[lastPlayerToBid].bid;
+
+  let diceCounter = 0;
+  game.players.forEach((player) => {
+    player.hand.forEach((d) => {
+      if (d == lastBid[1] || d == 1) {
+        diceCounter++;
+      }
+    });
+  });
+  if (diceCounter < lastBid[0]) {
+    return true;
+  }
+  return false;
 }
 
-function EndGame() {}
+function endGame() {}
 
-function removePlayer(i) {
-  console.log(`player ${i + 1} removed`);
-}
-
-function updateGame() {
-  localStorage.setItem("game", JSON.stringify(game));
-  console.log("game updated");
+function removePlayer(loser) {
+  console.log(`player ${loser +1} removed`);
+  const game = ut.loadFromStorage();
+  game.players.splice(loser, 1);
+  ut.updateStorage(game);
+  if (game.players.length == 1) {
+    endGame()
+  }
 }

@@ -3,16 +3,16 @@ import * as ctr from "./controls.js";
 import * as core from "./game-core.js";
 
 /*
-Bugs to fix:
-  1. Player 1 grid is not the same as other players, cousinhg problems with the bid display
-  2. Cancel dice choice while not in player's turn
+Bugs:
+  1. When a 1's bid given and the mib bid for other   die is more than dice in game die button should be disabled
+  2. Remove player from game when dice count is 0
 
 To do:
-  1. Display dice counter
-  2. End round and check winner
-  3. Show loser and winner
-  4. Loser loses dice
-  5. Winner starts next round
+  1. End round and check winner
+  2. Show loser and winner
+  3. Loser loses dice
+  4. Winner starts next round
+  5. Edd keydown event listener for bid, roll and call
 */
 
 const numberOfDice = document.querySelector(".number");
@@ -26,7 +26,6 @@ async function initializeGameUI() {
   console.log(game);
   setPlayers();
   setDiceCounter();
-  document.addEventListener("keydown", ctr.keydown);
   const firstToPlay = core.initializeTable();
   newRound(firstToPlay);
 }
@@ -44,9 +43,11 @@ async function newRound(firstToPlay) {
   console.log("new round, roll dice");
   await roll();
   clearTable();
+  setPlayers();
+  setDiceCounter();
+  showDiceCounter("round"); // show number of dice in game
   await core.startRound();
   const game = ut.loadFromStorage();
-  console.log(game.players[0].hand);
   placeHand(game.players[0].hand);
   round(firstToPlay);
 }
@@ -61,8 +62,7 @@ export async function round(firstToPlay) {
   } else {
     console.log("end round");
     console.log(playercalled);
-    await call(playercalled);
-    newRound();
+    endRound(playercalled);
   }
 }
 
@@ -76,7 +76,7 @@ async function playMove() {
   callButton.dataset.choice = "call";
 
   const move = await ctr.waitForClick([bidButton, callButton]);
-
+  
   if (move == "bid") {
     console.log("bid");
     placeBid();
@@ -86,24 +86,23 @@ async function playMove() {
     game.players[0].bid = "call";
     ut.updateStorage(game);
     console.log("call");
-    await call(0);
-    newRound();
+    endRound(0);
   }
+}
+
+async function endRound(callingPlayer) {
+  await call(callingPlayer);
+  const openningPlayer = core.endRound(callingPlayer);
+  newRound(openningPlayer);
 }
 
 function setPlayers() {
   // to be changed by positions
-  let players = `<img src="/images/table4.jpg" class="table">
-      <a class="menu-button exit" href="home.html">x</a>
-      <div class="player-grid player1">
-      <div class="bid" id="player1-bid"></div>
-      <div>
-      <img src="/images/cup.png" class="cup-image"/>
-      </div>
-      <div class="dice-container"></div>
-    </div>`;
-  for (let i = 2; i <= game.numberOfPlayers; i++) {
-    players += `<div class="player-grid player${i}">
+  let items = `<img src="/images/table4.jpg" class="table">
+  <a class="menu-button exit" href="home.html">x</a>
+  <div class="dice-in-game">Dice in game: 20</div>`;
+  for (let i = 1; i <= game.numberOfPlayers; i++) {
+    items += `<div class="player-grid player${i}">
         <div class="bid"></div>
         <div class="cup-container js-player${i}">
           <div class="square-container"></div>
@@ -114,7 +113,7 @@ function setPlayers() {
         <div class="dice-container"></div>
       </div>`;
   }
-  document.querySelector(".table-container").innerHTML = players;
+  document.querySelector(".table-container").innerHTML = items;
 }
 
 function clearTable() {
@@ -131,11 +130,12 @@ function clearTable() {
 }
 
 function setDiceCounter() {
+  const game = ut.loadFromStorage();
   for (let i = 2; i <= game.numberOfPlayers; i++) {
     document
       .querySelector(`.js-player${i}`)
       .querySelector(".square-container").innerHTML =
-      '<div class="square"></div>'.repeat(5);
+      '<div class="square"></div>'.repeat(game.players[i - 1].numberOfDice);
   }
 }
 
@@ -147,6 +147,7 @@ async function call(playerCalled) {
   console.log(`last player to bid: ${lastPlayerToBid}, last bid: ${lastBid}`);
   clearTable();
   clearBids();
+  console.log(lastBid);
   document.querySelector(`.player${playerCalled + 1}`).querySelector(".bid").innerHTML = "Called Liar!";
   document
         .querySelector(`.player${lastPlayerToBid + 1}`)
@@ -158,11 +159,23 @@ async function call(playerCalled) {
 
 function placeBid() {
   const chosenDie = ctr.chosenDie;
-  game.players[0].bid = [numberOfDice.textContent, chosenDie];
+  const numberElement = document.querySelector(".number");
+
+  if (!numberElement) {
+    console.error("Element with class .number does not exist.");
+    return;
+  }
+
+  const numberOfDice = numberElement.textContent;
+  if (!numberOfDice) {
+    console.error(".number exists but has no text content.");
+    return;
+  }
+
+  console.log("Number of Dice:", numberOfDice); // Should now log the correct value
+  game.players[0].bid = [numberOfDice, ut.convertDiceType(chosenDie)];
   ut.updateStorage(game);
-  document.getElementById(
-    "player1-bid"
-  ).innerHTML = `${numberOfDice.textContent} &#10005 <img src="/images/dice-${chosenDie}.png" class="dice-image padding-left">`;
+  document.querySelector('.player1').querySelector('.bid').innerHTML = `${numberOfDice} &#10005 <img src="/images/dice-${chosenDie}.png" class="dice-image padding-left">`;
   document.querySelector(`.player1`).classList.remove("player-turn");
 }
 
@@ -220,7 +233,7 @@ async function showBids() {
 
 async function showHands(playerCalled) {
   const game = ut.loadFromStorage();
-  const lastPlayerToBid = (playerCalled + game.numberOfPlayers - 1) % game.numberOfPlayers;
+  const lastPlayerToBid = (playerCalled + game.numberOfPlayers - 1) % game.numberOfPlayers; 
   const lastBid = game.players[lastPlayerToBid].bid;
   let diceCounter = 0;
   for (let i = playerCalled; i < game.numberOfPlayers + playerCalled; i++) {
@@ -240,10 +253,10 @@ async function showHands(playerCalled) {
             )}.png" class="dice-image"></img>`;
           }
         });
+        
+        const delay = i === playerCalled ? 0 : animationSpeed;
+        setTimeout(() => {
         updateDiceCounter(diceCounter);
-
-      const delay = i === playerCalled ? 0 : animationSpeed;
-      setTimeout(() => {
         document
           .querySelector(`.${game.players[fixedIndex].jsId}`)
           .querySelector(".dice-container").innerHTML = dice; // needs to be combined with same function for player1
@@ -253,10 +266,16 @@ async function showHands(playerCalled) {
   }
 }
 
-function showDiceCounter() {
-
+function showDiceCounter(diceCounter) {
+  const game = ut.loadFromStorage();
+  if (diceCounter == "round") { //  show number of dice in game 
+    const game = ut.loadFromStorage();
+    document.querySelector('.dice-in-game').textContent = `Dice in game: ${game.diceInGame}`;
+    return;
+  }
+  document.querySelector('.dice-in-game').textContent = `${diceCounter}`;
 }
 
 function updateDiceCounter(diceCounter) {
-  console.log(diceCounter);
+  showDiceCounter(diceCounter);
 }

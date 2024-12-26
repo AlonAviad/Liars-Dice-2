@@ -1,12 +1,11 @@
 import * as ut from "./utils.js";
-import * as ui from "./ui-controller.js";
 
-const game = ut.loadFromStorage();
-// const diceInGame = game.diceInGame;
 const addButton = document.querySelector(".bar-add");
 const subButton = document.querySelector(".bar-sub");
 const numberOfDice = document.querySelector(".number");
+
 let minBid;
+
 export let chosenDie;
 
 
@@ -22,14 +21,37 @@ function subOne() {
   addSubButtons();
 };
 
-// Choose dice from bar
-function diceButtons() {
-  document.querySelectorAll(".dice-image.bar").forEach((die, i) => {
-    die.disabled = false;
-    die.addEventListener("click", () => {
-      chooseDice(ut.convertDiceType(i + 1));
-    });
+let handleClick;
+let handleKeydown;
+
+function enableDiceSelection() {
+  const diceImages = document.querySelectorAll(".dice-image.bar");
+
+  handleClick = (event) => {
+    const dieType = event.target.dataset.die;
+
+    chooseDice(dieType);
+  };
+
+  handleKeydown = (event) => {
+    if (event.key >= "1" && event.key <= "6") {
+      chooseDice(ut.convertDiceType(Number(event.key)));
+    }
+  };
+
+  diceImages.forEach((die) => {
+    die.addEventListener("click", handleClick);
   });
+  document.addEventListener("keydown", handleKeydown);
+}
+
+function disableDiceSelection() {
+  const diceImages = document.querySelectorAll(".dice-image.bar");
+
+  diceImages.forEach((die) => {
+    die.removeEventListener("click", handleClick);
+  });
+  document.removeEventListener("keydown", handleKeydown);
 }
 
 function removeChosenDie() {
@@ -41,6 +63,7 @@ function removeChosenDie() {
   }
 
 function chooseDice(die) {
+  console.log("Chosen die:", die);
 minBid = ut.findMinBid(ut.convertDiceType(die));
 chosenDie == null
     ? (numberOfDice.textContent = Math.max(minBid, numberOfDice.textContent))
@@ -69,32 +92,8 @@ export function addSubButtons() { // Enable or disable add and sub bottons
     if (numberOfDice.textContent == game.diceInGame || numberOfDice.textContent == "") {
       addButton.disabled = true;
     }
-  }
-  
-export function keydown(event) {
-  if (event.key == "Enter") {
-      if (phase == "playersRoll") {
-      roll();
-      } else if (phase == "playersTurn") {
-      if (event.shiftKey) {
-          reveal();
-      } else {
-          bid();
-      }
-      }
-  removeChosenDie()
-  }
-  if (Number(event.key) <= 6 && phase != "playersRoll") {
-      chooseDice(utils.convertDiceType(Number(event.key)));
-  }
-  if (event.key === "+" && !addButton.disabled && phase != "playersRoll") {
-      addOne();
-  }
-  if (event.key === "-" && !subButton.disabled && phase != "playersRoll") {
-      subOne();
-  }
 }
-
+  
 
 export function waitForClick(buttons) {
   return new Promise((resolve) => {
@@ -114,47 +113,44 @@ export function placeRollButton() {
   document.getElementById(
     "bid-buttons"
   ).innerHTML = `<button class="menu-button bid-button roll">Roll</button>`;
-  // document.querySelector(".roll").addEventListener("click", clickRoll);
 
-  // Set add-sub and dice buttons
   subButton.disabled = true;
   addButton.disabled = true;
-  document
-    .querySelectorAll(".dice-image")
-    .forEach((die) => (die.disabled = true));
+
 }
 
 
 export function placeMoveButtons() {
+  enableDiceSelection();
   document.getElementById(
     "bid-buttons"
   ).innerHTML = `<button class="menu-button bid-button bid">Bid</button>
   <button class="menu-button bid-button reveal">Call Liar</button>`
   document.querySelector(`.player1`).classList.add("player-turn");
-  document.getElementById("player1-bid").innerHTML = ""; // Adds turn mark and clear player's bid on table
+  document.querySelector(".player1").querySelector(".bid").innerHTML = ""; // Adds turn mark and clear player's bid on table
   
   const bidButton = document.querySelector(".bid-button.bid");
 
   bidButton.disabled = true;
 
+  
   addSubButtons();
-  diceButtons();
+  // diceButtons();
 }
 
 
 export function clearControls() {
+  console.log("clearing controls");
   chosenDie = null;
   numberOfDice.textContent = "";
   document.getElementById("bid-buttons").innerHTML = "";
-  document.querySelectorAll(".dice-image.bar").forEach((die, i) => {
-    die.disabled = true;
-  });
+
   addButton.disabled = true;
   subButton.disabled = true;
 
-  removeChosenDie();
+disableDiceSelection();
+removeChosenDie();
 }
 
 addButton.addEventListener("click", addOne);
 subButton.addEventListener("click", subOne);
-
