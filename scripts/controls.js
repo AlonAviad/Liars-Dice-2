@@ -66,7 +66,7 @@ export function addSubButtons() { // Enable or disable add and sub bottons
     ) {
       subButton.disabled = true;
     }
-    if (numberOfDice.textContent == game.diceInGame) {
+    if (numberOfDice.textContent == game.diceInGame || numberOfDice.textContent == "") {
       addButton.disabled = true;
     }
   }

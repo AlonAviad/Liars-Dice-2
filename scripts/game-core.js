@@ -15,12 +15,14 @@ export function initializeTable() {
 };
 
 export function startRound() {
+  return new Promise((resolve) => {
   ut.clearBids();
   const game = ut.loadFromStorage();
   game.players.forEach((player) => player.rollDice());
   ut.updateStorage(game);
   console.log("round started");
-  return;
+  resolve();}
+  );
 }
 
 export function continueRound(start) {
@@ -29,15 +31,13 @@ export function continueRound(start) {
     if (game.players[i].placeBid() === "call") {
       console.log(`player ${i + 1} calls`);
       ut.updateStorage(game);
-      return 0;
+      return i;
     }
-    console.log(`Player ${i + 1} placed bid`);
-    console.log(game.players[i].bid);
+    console.log(`Player ${i + 1} placed bid: ${game.players[i].bid}`);
   }
-  console.log(game.players)
   ut.updateStorage(game);
-  return 1;
-  // returns 1 if game continues and 0 if dont
+  return 0;
+  // returns number of player ends round and 0 if game continues
 }
 
 export function playerTurn(bid) {

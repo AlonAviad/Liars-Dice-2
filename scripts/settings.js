@@ -63,7 +63,7 @@ function subOne() {
 function save() { 
   settings = {
     playerName: playerName.value || null,
-    numberOfPlayers: numberOfPlayers.innerText,
+    numberOfPlayers: Number(numberOfPlayers.innerText),
     onTheSpot: onTheSpot.checked,
     getDiceBack: getDiceBack.checked,
     loserStarts: loserStarts.checked,

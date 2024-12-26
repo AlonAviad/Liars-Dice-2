@@ -24,7 +24,7 @@ export function defaultSettings() {
     };
   }
 
-export function diceCounter () {
+export function diceInHand () {
 
 }
 
@@ -77,6 +77,7 @@ export function initializeGame() {
     }
   });
 }
+
 export function clearBids() {
   const game = loadFromStorage();
   console.log("clear bids")

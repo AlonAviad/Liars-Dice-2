@@ -1,12 +1,22 @@
 import * as ut from "./utils.js";
 import * as ctr from "./controls.js";
 import * as core from "./game-core.js";
-import { Game } from "./classes.js";
 
-const addButton = document.querySelector(".bar-add");
-const subButton = document.querySelector(".bar-sub");
+/*
+Bugs to fix:
+  1. Player 1 grid is not the same as other players, cousinhg problems with the bid display
+  2. Cancel dice choice while not in player's turn
+
+To do:
+  1. Display dice counter
+  2. End round and check winner
+  3. Show loser and winner
+  4. Loser loses dice
+  5. Winner starts next round
+*/
+
 const numberOfDice = document.querySelector(".number");
-let chosenDie;
+const animationSpeed = 600;
 
 let game;
 initializeGameUI();
@@ -31,21 +41,27 @@ async function roll() {
 }
 
 async function newRound(firstToPlay) {
+  console.log("new round, roll dice");
   await roll();
   clearTable();
-  core.startRound();
+  await core.startRound();
+  const game = ut.loadFromStorage();
+  console.log(game.players[0].hand);
+  placeHand(game.players[0].hand);
   round(firstToPlay);
 }
 
 export async function round(firstToPlay) {
-  let cont = core.continueRound(firstToPlay);
+  const playercalled = core.continueRound(firstToPlay);
   game = ut.loadFromStorage();
   console.log(game.players);
   await showBids();
-  if (cont) {
-    await playMove();
+  if (!playercalled) {
+    playMove();
   } else {
     console.log("end round");
+    console.log(playercalled);
+    await call(playercalled);
     newRound();
   }
 }
@@ -65,12 +81,12 @@ async function playMove() {
     console.log("bid");
     placeBid();
     ctr.clearControls();
-    core.continueRound();
+    round();
   } else if (move == "call") {
     game.players[0].bid = "call";
     ut.updateStorage(game);
     console.log("call");
-    ctr.clearControls();
+    await call(0);
     newRound();
   }
 }
@@ -123,13 +139,31 @@ function setDiceCounter() {
   }
 }
 
+async function call(playerCalled) {
+  ctr.clearControls();
+  const game = ut.loadFromStorage();
+  const lastPlayerToBid = (playerCalled + game.numberOfPlayers - 1) % game.numberOfPlayers;
+  const lastBid = game.players[lastPlayerToBid].bid;
+  console.log(`last player to bid: ${lastPlayerToBid}, last bid: ${lastBid}`);
+  clearTable();
+  clearBids();
+  document.querySelector(`.player${playerCalled + 1}`).querySelector(".bid").innerHTML = "Called Liar!";
+  document
+        .querySelector(`.player${lastPlayerToBid + 1}`)
+        .querySelector(".bid").innerHTML = `${lastBid[0]} &#10005 <img src="/images/dice-${ut.convertDiceType(lastBid[1])}.png" class="dice-image padding-left">`;
+  await showHands(playerCalled);
+  console.log("ready for next round");
+}
+
+
 function placeBid() {
+  const chosenDie = ctr.chosenDie;
   game.players[0].bid = [numberOfDice.textContent, chosenDie];
-  console.log(game.players[0].bid);
   ut.updateStorage(game);
   document.getElementById(
     "player1-bid"
   ).innerHTML = `${numberOfDice.textContent} &#10005 <img src="/images/dice-${chosenDie}.png" class="dice-image padding-left">`;
+  document.querySelector(`.player1`).classList.remove("player-turn");
 }
 
 function clearBids() {
@@ -178,8 +212,51 @@ async function showBids() {
           )}.png" class="dice-image padding-left">`;
           resolve();
         }
-      }, 600); // 1-second interval
+      }, animationSpeed); // 1-second interval
     });
     if (game.players[i].bid == "call") break;
   }
+}
+
+async function showHands(playerCalled) {
+  const game = ut.loadFromStorage();
+  const lastPlayerToBid = (playerCalled + game.numberOfPlayers - 1) % game.numberOfPlayers;
+  const lastBid = game.players[lastPlayerToBid].bid;
+  let diceCounter = 0;
+  for (let i = playerCalled; i < game.numberOfPlayers + playerCalled; i++) {
+    let fixedIndex = i % game.numberOfPlayers;
+
+    await new Promise((resolve) => {
+      let dice = "";
+      game.players[fixedIndex].hand.forEach((d) => {
+        if (d == lastBid[1] || d == 1) {
+          diceCounter ++;
+          (dice += `<img src="/images/dice-${ut.convertDiceType(
+              d
+            )}.png" class="dice-image choose-die"></img>`)
+        } else {
+          dice += `<img src="/images/dice-${ut.convertDiceType(
+              d
+            )}.png" class="dice-image"></img>`;
+          }
+        });
+        updateDiceCounter(diceCounter);
+
+      const delay = i === playerCalled ? 0 : animationSpeed;
+      setTimeout(() => {
+        document
+          .querySelector(`.${game.players[fixedIndex].jsId}`)
+          .querySelector(".dice-container").innerHTML = dice; // needs to be combined with same function for player1
+        resolve();
+      }, delay);
+    });
+  }
+}
+
+function showDiceCounter() {
+
+}
+
+function updateDiceCounter(diceCounter) {
+  console.log(diceCounter);
 }
