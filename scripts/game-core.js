@@ -25,52 +25,56 @@ export function startRound() {
   );
 }
 
-export function continueRound(start) {
+export function continueRound(start) { 
   const game = ut.loadFromStorage();
-  for (let i = start || 1; i < game.numberOfPlayers; i++) {
-    if (game.players[i].placeBid() === "call") {
-      console.log(`player ${i + 1} calls`);
-      ut.updateStorage(game);
-      return i;
+  return new Promise((resolve) => {
+    for (let i = start || 1; i < game.numberOfPlayers; i++) {
+      if (game.players[i].placeBid() === "call") {
+        console.log(`player ${i + 1} calls`);
+        ut.updateStorage(game);
+        resolve(i);
+      }
+      // console.log(`Player ${i + 1} placed bid: ${game.players[i].bid}`);
     }
-    // console.log(`Player ${i + 1} placed bid: ${game.players[i].bid}`);
-  }
-  ut.updateStorage(game);
-  return 0;
-  // returns number of player ends round and 0 if game continues
+    ut.updateStorage(game);
+    resolve(0);
+    // returns number of player ends round and 0 if game continues
+  });
 }
 
 export function playerTurn(bid) {
   players[0].bid == bid;
 }
 
-export function endRound(callingPlayer) {
-  const game = ut.loadFromStorage();
-  let winner;
-  let loser;
-  if (checkWinner(callingPlayer)) {
-    winner = callingPlayer;
-    loser = (callingPlayer + game.numberOfPlayers - 1) % game.numberOfPlayers;
-  } else {
-    winner = (callingPlayer + game.numberOfPlayers - 1) % game.numberOfPlayers;
-    loser = callingPlayer;
-  }
-  game.players[loser].numberOfDice--;
-  game.diceInGame--;
-  if (game.players[loser].numberOfDice == 0) {
-    removePlayer(loser);
-  }
-  ut.updateStorage(game);
-  if (game.settings.loserStarts) {
-    return loser;
-  }
-  return winner;
+export async function endRound(callingPlayer) {
+    let game = ut.loadFromStorage();
+    let winner;
+    let loser;
+    if (checkWinner(callingPlayer)) {
+      winner = callingPlayer;
+      loser = ut.previousPlayer(callingPlayer);
+    } else {
+      winner = ut.previousPlayer(callingPlayer);
+      loser = callingPlayer;
+    }
+    game.players[loser].numberOfDice--;
+    console.log(`player ${loser + 1} lost a die`);
+    game.diceInGame--;
+    if (!game.players[loser].numberOfDice) {
+      await removePlayer(loser);
+    } else {
+      ut.updateStorage(game);
+    }
+    if (game.settings.loserStarts) {
+      return loser;
+    }
+    return winner;
 }
 
 export function checkWinner(playerCalled) {
   //  returns "true" if calling player wins
   const game = ut.loadFromStorage();
-  const lastPlayerToBid = (playerCalled + game.numberOfPlayers - 1) % game.numberOfPlayers; 
+  const lastPlayerToBid = ut.previousPlayer(playerCalled);
   const lastBid = game.players[lastPlayerToBid].bid;
 
   let diceCounter = 0;
@@ -87,14 +91,20 @@ export function checkWinner(playerCalled) {
   return false;
 }
 
-function endGame() {}
 
 function removePlayer(loser) {
-  console.log(`player ${loser +1} removed`);
-  const game = ut.loadFromStorage();
-  game.players.splice(loser, 1);
-  ut.updateStorage(game);
-  if (game.players.length == 1) {
-    endGame()
-  }
+  return new Promise((resolve) => {
+    let game = ut.loadFromStorage();
+    console.log(`player ${loser +1} removed`);
+    game.players.splice(loser, 1);
+    game.numberOfPlayers--;
+    ut.updateStorage(game);
+    if (game.numberOfPlayers == 1) {
+      endGame()
+    }
+    resolve();
+  });
 }
+
+
+function endGame() {}

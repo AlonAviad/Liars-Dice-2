@@ -25,6 +25,8 @@ let handleClick;
 let handleKeydown;
 
 function enableDiceSelection() {
+  const game = ut.loadFromStorage();
+  const lastBid = game.players[game.numberOfPlayers - 1].bid;
   const diceImages = document.querySelectorAll(".dice-image.bar");
 
   handleClick = (event) => {
@@ -34,13 +36,19 @@ function enableDiceSelection() {
   };
 
   handleKeydown = (event) => {
-    if (event.key >= "1" && event.key <= "6") {
+    if (!(lastBid[1] == 1 && lastBid[0] >= game.diceInGame / 2) && (event.key >= "1" && event.key <= "6") ) {
+      chooseDice(ut.convertDiceType(Number(event.key)));
+    } else if (event.key == "1") {
       chooseDice(ut.convertDiceType(Number(event.key)));
     }
   };
 
   diceImages.forEach((die) => {
+    if (lastBid[1] == 1 && lastBid[0] >= game.diceInGame / 2) {
+      document.querySelector(".dice-image.bar.one").addEventListener("click", handleClick);
+    } else {
     die.addEventListener("click", handleClick);
+    }
   });
   document.addEventListener("keydown", handleKeydown);
 }

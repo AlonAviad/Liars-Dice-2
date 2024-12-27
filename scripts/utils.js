@@ -87,4 +87,10 @@ export function clearBids() {
   updateStorage(game);
 }
 
+export function previousPlayer(playerIndex) {
+  const game = loadFromStorage();
+  let previousPlayer = (playerIndex + game.numberOfPlayers - 1) % game.numberOfPlayers;
+  return previousPlayer;
+}
+
 //--------------------------------------------------

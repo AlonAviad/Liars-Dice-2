@@ -69,10 +69,10 @@ class Player {
 
   placeBid() {
     // claculates the best bid and play (or calls liar)
-    const randQ = Math.floor(Math.random() * 12 + 1)
+    const randQ = Math.floor(Math.random() * 15 + 1)
     const randD = Math.floor(Math.random() * 6 + 1)
     this.bid = [randQ, randD];
-    if (this.bid[0] == 12) { 
+    if (this.bid[0] == 15) { 
       this.bid = "call";
       return "call";
     };  
