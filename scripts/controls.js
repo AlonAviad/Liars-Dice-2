@@ -146,6 +146,22 @@ export function placeMoveButtons() {
   // diceButtons();
 }
 
+export function placeExitButton() {
+
+  document.getElementById(
+    "bid-buttons"
+  ).innerHTML = `<button class="menu-button bid-button new-game">New Game</button>
+  <button class="menu-button bid-button exit-game">Exit</button>`;
+  
+  document.querySelector(".new-game").addEventListener("click", () => {
+    location.reload();
+  });
+
+  document.querySelector(".exit-game").addEventListener("click", () => {
+    location.href = "home.html";
+  });
+}
+
 
 export function clearControls() {
   console.log("clearing controls");

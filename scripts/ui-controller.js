@@ -3,14 +3,11 @@ import * as ctr from "./controls.js";
 import * as core from "./game-core.js";
 
 /*
-Bugs:
-  1. After a player has been removed the index is wrong and points to the wrong player
-
 To do:
-  1. Show loser and winner
-  2. Edd keydown event listener for bid, roll and call
-  3. Fixed players position
-  4. End game
+  1. Edd keydown event listener for bid, roll and call
+  2. Position changes according to number of players
+  3. Add winner mark
+  4. Test "continue" button
 
 Next:
   1. Bidding logic
@@ -25,8 +22,19 @@ initializeGameUI();
 
 async function initializeGameUI() {
   game = await ut.initializeGame();
-  game.players[2].numberOfDice = 1;
-  ut.updateStorage(game);
+
+  // game.players[1].numberOfDice = 1; // for testing
+  // game.diceInGame -= 4; // for testing
+  // game.players[2].numberOfDice = 1; // for testing
+  // game.diceInGame -= 4; // for testing
+  // game.players[3].numberOfDice = 1; // for testing
+  // game.diceInGame -= 4; // for testing
+  // game.players[4].numberOfDice = 1; // for testing
+  // game.diceInGame -= 4; // for testing
+  // game.players[5].numberOfDice = 1; // for testing
+  // game.diceInGame -= 4; // for testing
+  // ut.updateStorage(game); // for testing
+
   console.log(game);
   setPlayers();
   setDiceCounter();
@@ -40,7 +48,7 @@ async function newRound(firstToPlay) {
   clearTable();
   setPlayers();
   setDiceCounter();
-  showDiceCounter("round"); // show number of dice in game
+  textBox(); // show number of dice in game
   await core.startRound();
   const game = ut.loadFromStorage();
 
@@ -91,22 +99,38 @@ async function playMove() {
 }
 
 async function endRound(callingPlayer) {
+  game = ut.loadFromStorage();
   await call(callingPlayer);
   const openningPlayer = await core.endRound(callingPlayer);
+  game = ut.loadFromStorage();
+  if (game.numberOfPlayers == 1) {
+    return endGame();
+  }
   newRound(openningPlayer);
+}
+
+function endGame() {
+  game = ut.loadFromStorage();
+  let text = `Game Over\n${game.players[0].name} wins!`;
+  textBox(text);
+  localStorage.removeItem("game");
+  ctr.clearControls();
+  ctr.placeExitButton();
 }
 
 function setPlayers() {
   const game = ut.loadFromStorage();
+  let id;
   console.log("game befor set", game);
-  // to be changed by positions
   let items = `<img src="/images/table4.jpg" class="table">
   <a class="menu-button exit" href="home.html">x</a>
   <div class="dice-in-game">Dice in game: 20</div>`;
   for (let i = 1; i <= game.numberOfPlayers; i++) {
-    items += `<div class="player-grid player${i}">
+    id = game.players[i-1].jsId;
+    console.log(`player ${i} id: ${id}`);
+    items += `<div class="player-grid player${i} position-${id}">
         <div class="bid"></div>
-        <div class="cup-container js-player${i}">
+        <div class="cup-container">
           <div class="square-container"></div>
           <div>
           <img src="/images/cup.png" class="cup-image"/>
@@ -127,7 +151,7 @@ function clearTable() {
     document
       .querySelector(`.player${i}`)
       .querySelector(".dice-container").innerHTML = "";
-    document.querySelector(`.js-player${i}`).classList.remove("player-turn");
+    document.querySelector(`.player${i}`).querySelector(".cup-container").classList.remove("player-turn");
   }
 }
 
@@ -135,7 +159,7 @@ function setDiceCounter() {
   const game = ut.loadFromStorage();
   for (let i = 2; i <= game.numberOfPlayers; i++) {
     document
-      .querySelector(`.js-player${i}`)
+      .querySelector(`.player${i}`)
       .querySelector(".square-container").innerHTML =
       '<div class="square"></div>'.repeat(game.players[i - 1].numberOfDice);
   }
@@ -215,11 +239,10 @@ async function showBids(startingPlayer) {
       document
         .querySelector(`.player${i + 1}`)
         .querySelector(".bid").innerHTML = "";
-      document.querySelector(`.js-player${i + 1}`).classList.add("player-turn");
+      document.querySelector(`.player${i + 1}`).querySelector(".cup-container").classList.add("player-turn");
       setTimeout(() => {
         document
-          .querySelector(`.js-player${i + 1}`)
-          .classList.remove("player-turn");
+          .querySelector(`.player${i + 1}`).querySelector(".cup-container").classList.remove("player-turn");
         // show player's bid or call
         if (game.players[i].bid == "call") {
           document
@@ -242,54 +265,85 @@ async function showBids(startingPlayer) {
   }
 }
 
+
 async function showHands(playerCalled) {
   const game = ut.loadFromStorage();
   const lastPlayerToBid = ut.previousPlayer(playerCalled);
   const lastBid = game.players[lastPlayerToBid].bid;
+
   let diceCounter = 0;
+
   for (let i = playerCalled; i < game.numberOfPlayers + playerCalled; i++) {
-    let fixedIndex = i % game.numberOfPlayers;
+    const fixedIndex = i % game.numberOfPlayers;
+    const delay = i === playerCalled ? 0 : animationSpeed;
 
-    await new Promise((resolve) => {
-      let dice = "";
-      game.players[fixedIndex].hand.forEach((d) => {
-        if (d == lastBid[1] || d == 1) {
-          diceCounter++;
-          dice += `<img src="/images/dice-${ut.convertDiceType(
-            d
-          )}.png" class="dice-image choose-die"></img>`;
-        } else {
-          dice += `<img src="/images/dice-${ut.convertDiceType(
-            d
-          )}.png" class="dice-image"></img>`;
-        }
-      });
+    diceCounter = await showPlayerHand(game.players[fixedIndex], fixedIndex, lastBid, diceCounter, delay);
 
-      const delay = i === playerCalled ? 0 : animationSpeed;
-      setTimeout(() => {
-        updateDiceCounter(diceCounter);
-        document
-          .querySelector(`.${game.players[fixedIndex].jsId}`)
-          .querySelector(".dice-container").innerHTML = dice; // needs to be combined with same function for player1
-        resolve();
-      }, delay);
-    });
+    if (fixedIndex === lastPlayerToBid) {
+      await showTotalDiceAndLoser(playerCalled, diceCounter);
+    }
   }
 }
 
-function showDiceCounter(diceCounter) {
-  const game = ut.loadFromStorage();
-  if (diceCounter == "round") {
+function generateDiceImages(hand, lastBid, diceCounter) {
+  let updatedCounter = diceCounter;
+
+  const diceImages = hand
+    .map((d) => {
+      if (d == lastBid[1] || d == 1) {
+        updatedCounter++;
+        return `<img src="/images/dice-${ut.convertDiceType(
+          d
+        )}.png" class="dice-image choose-die"></img>`;
+      } else {
+        return `<img src="/images/dice-${ut.convertDiceType(
+          d
+        )}.png" class="dice-image"></img>`;
+      }
+    })
+    .join("");
+
+  return { diceImages, updatedCounter };
+}
+
+async function showPlayerHand(player, index, lastBid, diceCounter, delay) {
+  const diceContainer = document.querySelector(`.player${index + 1} .dice-container`);
+  const { diceImages, updatedCounter } = generateDiceImages(player.hand, lastBid, diceCounter);
+
+  await new Promise((resolve) => {
+    setTimeout(() => {
+      diceContainer.innerHTML = diceImages;
+      textBox(updatedCounter);
+      resolve();
+    }, delay);
+  });
+
+  return updatedCounter;
+}
+
+async function showTotalDiceAndLoser(playerCalled, diceCounter) {
+  await new Promise((resolve) => {
+    setTimeout(() => {
+      const game = ut.loadFromStorage();
+      const loser = core.checkWinner(playerCalled)
+        ? ut.previousPlayer(playerCalled)
+        : playerCalled;
+      const text = `Total of ${diceCounter} dice\n${game.players[loser].name} loses a die`;
+      textBox(text);
+      resolve();
+    }, animationSpeed);
+  });
+}
+
+
+function textBox(text) {
+  if (!text) {
     //  show number of dice in game
     const game = ut.loadFromStorage();
-    document.querySelector(
-      ".dice-in-game"
-    ).textContent = `Dice in game: ${game.diceInGame}`;
+    text = `Dice in game: ${game.diceInGame}`;
     return;
   }
-  document.querySelector(".dice-in-game").textContent = `${diceCounter}`;
-}
-
-function updateDiceCounter(diceCounter) {
-  showDiceCounter(diceCounter);
+  document.querySelector(
+    ".dice-in-game"
+  ).textContent = text;
 }

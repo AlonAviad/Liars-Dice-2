@@ -57,11 +57,17 @@ export async function endRound(callingPlayer) {
       winner = ut.previousPlayer(callingPlayer);
       loser = callingPlayer;
     }
+    console.log(`player ${winner + 1} wins`);
+    console.log(`player ${loser + 1} loses`);
     game.players[loser].numberOfDice--;
     console.log(`player ${loser + 1} lost a die`);
     game.diceInGame--;
     if (!game.players[loser].numberOfDice) {
       await removePlayer(loser);
+      if (!game.loserStarts || loser !== callingPlayer) {
+        return ut.previousPlayer(callingPlayer);
+      }
+      return callingPlayer;
     } else {
       ut.updateStorage(game);
     }
@@ -99,12 +105,9 @@ function removePlayer(loser) {
     game.players.splice(loser, 1);
     game.numberOfPlayers--;
     ut.updateStorage(game);
-    if (game.numberOfPlayers == 1) {
-      endGame()
-    }
+    // if (game.numberOfPlayers == 1) {
+    //   endGame()
+    // }
     resolve();
   });
 }
-
-
-function endGame() {}

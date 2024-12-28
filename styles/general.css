@@ -136,32 +136,32 @@ h1{
   width: 278px;
 }
 
-.player1 {
+.position-player1 {
   bottom: 2%;
   left: 37%;
 }
 
-.player2 {
+.position-player2 {
   bottom: 10%;
   left: 8%;
 }
 
-.player3 {
+.position-player3 {
   top: 10%;
   left: 10%;
 }
 
-.player4 {
+.position-player4 {
   top: 2%;
   left: 44%;
 }
 
-.player5 {
+.position-player5 {
   top: 10%;
   right: 8%;
 }
 
-.player6 {
+.position-player6 {
   bottom: 10%;
   right: 8%;
 }
