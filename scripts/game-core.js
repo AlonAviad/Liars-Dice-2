@@ -1,7 +1,6 @@
 import * as ut from "./utils.js";
 
 let game;
-;
 
 export function initializeTable() {
   game = ut.loadFromStorage();
@@ -10,29 +9,47 @@ export function initializeTable() {
   }
 
   let firstToPlay = Math.floor(Math.random() * game.numberOfPlayers);
-  firstToPlay = 1
+  firstToPlay = 0;
   return firstToPlay;
 };
 
-export function startRound() {
-  return new Promise((resolve) => {
+// export function startRound() {
+//   return new Promise((resolve) => {
+//   ut.clearBids();
+//   const game = ut.loadFromStorage();
+//   game.players.forEach((player) => player.rollDice());
+//   ut.updateStorage(game);
+//   console.log("round started");
+//   console.log(game.players);
+//   resolve();}
+//   );
+// }
+
+export async function startRound() {
   ut.clearBids();
   const game = ut.loadFromStorage();
-  game.players.forEach((player) => player.rollDice());
+  
+  // Wait for all players to roll
+  await Promise.all(game.players.map(player => player.rollDice()));
+  
   ut.updateStorage(game);
   console.log("round started");
-  resolve();}
-  );
+  console.log(game.players);
 }
 
 export function continueRound(start) { 
   const game = ut.loadFromStorage();
+  console.log(`Player 1 hand: ${game.players[0].hand}`);
   return new Promise((resolve) => {
     for (let i = start || 1; i < game.numberOfPlayers; i++) {
-      if (game.players[i].placeBid() === "call") {
+      let newBid = game.players[i].makeBid(game.players[i-1].bid);
+      console.log(`player ${i + 1} placed bid: ${newBid}`);
+      console.log(`Player hand: ${game.players[i].hand}`);
+      if (newBid === "call") {
         console.log(`player ${i + 1} calls`);
         ut.updateStorage(game);
         resolve(i);
+        break;
       }
       // console.log(`Player ${i + 1} placed bid: ${game.players[i].bid}`);
     }
@@ -40,10 +57,6 @@ export function continueRound(start) {
     resolve(0);
     // returns number of player ends round and 0 if game continues
   });
-}
-
-export function playerTurn(bid) {
-  players[0].bid == bid;
 }
 
 export async function endRound(callingPlayer) {
@@ -96,7 +109,6 @@ export function checkWinner(playerCalled) {
   }
   return false;
 }
-
 
 function removePlayer(loser) {
   return new Promise((resolve) => {
