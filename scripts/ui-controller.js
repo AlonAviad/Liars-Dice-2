@@ -5,10 +5,8 @@ import * as cls from "./classes.js"; // for testing
 
 /*
 Bugs:
-  1. When player 4 removes (player 1 wins the round) the next player to start is player 3 instead of player 1
-  2. Odds array shows for 4X1: [[0,0,0,0,0,0], [x1,x2,x3,x4,x5,**x6**]]
-  3. Bots start with 1's
-  4. Dice in game counter shows 6 instead of 4. Probably because of the 2 players removed
+  1. When player 4 removed (player 1 wins the round) the next player to start is player 3 instead of player 1
+  2. Dice in game counter does't updat when a player removed.
 
 To do:
   1. Edd keydown event listener for bid, roll and call
@@ -21,7 +19,11 @@ To do:
 
 Next:
   1. Design UI and graphics
-  2. Improve AI
+  2. Add modes:
+      "Loser starts"
+      "On The Spot"
+      "Get Dice Back"
+  3. Improve AI
 */
 
 const animationSpeed = 600;

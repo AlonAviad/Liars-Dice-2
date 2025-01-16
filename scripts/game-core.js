@@ -9,7 +9,6 @@ export function initializeTable() {
   }
 
   let firstToPlay = Math.floor(Math.random() * game.numberOfPlayers);
-  firstToPlay = 0;
   return firstToPlay;
 };
 

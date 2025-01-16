@@ -103,12 +103,11 @@ export function bidArray(quantity, series, hand, firstBid = false, best = false)
   best = firstBid ? true : best; //  Ensures that if firstBis is true, best is set to true. If firstBid is false, best remains unchanged.
   
   if (series === 1) {
-    series = 7;
     quantity = quantity * 2 + 1;
   }
   
   const diceInGame =  game.diceInGame;
-
+  console.log(`firstBid = ${firstBid}`);
   let arrayLength;
   if (firstBid) {
     arrayLength = diceInGame;
@@ -118,8 +117,7 @@ export function bidArray(quantity, series, hand, firstBid = false, best = false)
     arrayLength = 2;
   }
   const bidArray = Array.from({ length: arrayLength }, () => Array(6).fill(0));
-  
-  for (let currentQuantity = quantity; currentQuantity <= quantity + arrayLength - 1; currentQuantity++) { // array for each quantity
+  for (let currentQuantity = quantity; currentQuantity < quantity + arrayLength; currentQuantity++) { // array for each quantity
     for (let currentSeries = 0; currentSeries < 6; currentSeries++) { // array for each series of current quantity
       if (currentSeries === 5 && currentQuantity % 2 === 0 && !firstBid) { // leagal bids of 1s
           bidArray[currentQuantity - quantity][5] = calculateOdds(currentQuantity / 2, 1, hand);

@@ -49,12 +49,11 @@ class Player {
   numberOfDice = 5;
   hand;
   bid;
-  risk; // Example risk value, adjust as needed
+  risk = 0.35; // Example risk value, adjust as needed
 
-  constructor(name, jsId, risk = 0.35) {
+  constructor(name, jsId) {
     this.name = name;
     this.jsId = jsId;
-    this.risk = risk;
   }
 
   async rollDice() {
@@ -69,28 +68,38 @@ class Player {
   }
 
   makeBid(lastBid) {
-    const bidQuantity = lastBid ? lastBid[0] : 1;
-    const bidSeries = lastBid ? lastBid[1] : 0;
-    const betOdds = ut.calculateOdds(bidQuantity, bidSeries, this.hand);
-    const arr = ut.bidArray(bidQuantity, bidSeries, this.hand);
+    const lastBidQuantity = lastBid ? lastBid[0] : 1;
+    const lastBidSeries = lastBid ? lastBid[1] : 0;
+    const lastBidOdds = lastBid ? ut.calculateOdds(lastBidQuantity, lastBidSeries, this.hand) : 1;
+
+    if (ut.loadFromStorage().settings.onTheSpot && Math.abs(lastBidOdds - this.risk) <= 0.1) {
+      console.log("on the spot");
+      return "on the spot";
+    }
+
     let bid;
-  
-    const { myBet, myBetSeries, myBetQuantity } = calculateBid(
-      arr,
-      bidQuantity,
-      bidSeries
-    );
-  
-    if (betOdds > this.risk + 0.25) {
-      const best = bestBid(this.hand, this.risk);
-      if (best.odds < betOdds) {
+    
+    if (lastBidOdds > this.risk + 0.25) {
+      const best = bestBid(this.hand, this.risk, !lastBid);
+      if (best.odds < lastBidOdds) {
         bid = [best.quantity, best.series];
         this.bid = bid;
         return bid;
       }
     }
+    
+
+    const arr = ut.bidArray(lastBidQuantity, lastBidSeries, this.hand, !lastBid); // lastBid is null on first bid 
+
+    console.log(`Last bid odds: ${lastBidOdds}`);
   
-    bid = compareOdds(betOdds, myBet, myBetQuantity, myBetSeries, this.risk);
+    const { myBidOdds, myBidSeries, myBidQuantity } = calculateBid(
+      arr,
+      lastBidQuantity,
+      lastBidSeries
+    );
+  
+    bid = compareOdds(lastBidOdds, myBidOdds, myBidQuantity, myBidSeries, this.risk);
     this.bid = bid;
     return bid
   }
@@ -114,71 +123,93 @@ class Player {
   }
 }
 
-function calculateBid(arr, betQuantity, betSeries) {
-  let myBet = 0;
-  let myBetSeries = 0;
-  let myBetQuantity = 0;
+function calculateBidQuantity(lastBidSeries, myBidSeries, lastBidQuantity, row) {
+  if (lastBidSeries === 1) {
+      return myBidSeries === 1 
+          ? lastBidQuantity + 1
+          : lastBidQuantity * 2 + 1 + row;
+  }
+  return myBidSeries === 1 
+      ? (lastBidQuantity + row) / 2
+      : lastBidQuantity + row;
+}
 
-  for (let currentQuantity = 0; currentQuantity < 2; currentQuantity++) {
-    for (let currentSeries = 0; currentSeries < 6; currentSeries++) {
-      if (arr[currentQuantity][currentSeries] > myBet) {
-        myBet = arr[currentQuantity][currentSeries];
-        myBetSeries = currentSeries === 5 ? 1 : currentSeries + 2;
+function findBestBidInArray(arr, lastBidQuantity, lastBidSeries) {
+  let bestBid = {
+      odds: 0,
+      series: 0,
+      quantity: 0
+  };
 
-        if (betSeries === 1 && myBetSeries === 1) {
-          myBetQuantity = betQuantity + 1;
-        } else if (betSeries === 1 && myBetSeries !== 1) {
-          myBetQuantity = betQuantity * 2 + 1 + currentQuantity;
-        } else if (betSeries !== 1 && myBetSeries === 1) {
-          myBetQuantity = Math.floor((betQuantity + currentQuantity) / 2);
-        } else {
-          myBetQuantity = betQuantity + currentQuantity;
-        }
+  for (let row = 0; row < 2; row++) { // rows represent quantity
+      for (let col = 0; col < 6; col++) { // columns represent series
+          if (arr[row][col] <= bestBid.odds) continue;
+          
+          bestBid.odds = arr[row][col];
+          bestBid.series = col === 5 ? 1 : col + 2;
+          bestBid.quantity = calculateBidQuantity(lastBidSeries, bestBid.series, lastBidQuantity, row);
       }
-    }
   }
 
-  return { myBet, myBetSeries, myBetQuantity };
+  return bestBid;
 }
 
-function compareOdds(odds, bid, bidQuantity, bidSeries, risk) {
-  if (bid >= risk) {
-    if (odds >= risk) {
-      return [bidQuantity, bidSeries];
-    }
-    if (Math.abs(odds - risk) <= Math.abs(bid - risk)) {
-      return [bidQuantity, bidSeries];
-    }
-    return "call";
-  }
-
-  if (odds < risk) {
-    return "call";
-  }
-  if (Math.abs(odds - risk) >= Math.abs(bid - risk)) {
-    return "call";
-  }
-  return "call";
+function calculateBid(arr, bidQuantity, bidSeries) {
+  const bestBid = findBestBidInArray(arr, bidQuantity, bidSeries); // can be use directly?
+  
+  return {
+      myBidOdds: bestBid.odds,
+      myBidSeries: bestBid.series,
+      myBidQuantity: bestBid.quantity
+  };
 }
 
-function bestBid(hand, risk) {
-  const arr = ut.bidArray(1, 0, hand, false, true);
-  let bestBetQuantity = 0;
-  let bestBetSeries = 0;
+function compareOdds(lastBidOdds, bidOdds, bidQuantity, bidSeries, risk) {
+
+  // Both bids above risk
+  if (bidOdds >= risk && lastBidOdds >= risk) {
+      return [bidQuantity, bidSeries];
+  }
+  
+  // Both bids under risk
+  if (bidOdds < risk && lastBidOdds < risk) {
+      return "call";
+  }
+  
+  // My bid above, last bid under risk
+  if (bidOdds >= risk && lastBidOdds < risk) {
+      return Math.abs(lastBidOdds - risk) <= Math.abs(bidOdds - risk) 
+          ? [bidQuantity, bidSeries] 
+          : "call";
+  }
+  
+  // My bid under, last bid above risk
+  if (bidOdds < risk && lastBidOdds >= risk) {
+      return Math.abs(lastBidOdds - risk) >= Math.abs(bidOdds - risk)
+          ? [bidQuantity, bidSeries]
+          : "call";
+  }
+}
+
+function bestBid(hand, risk, first = false) {
+  const arr = ut.bidArray(1, 0, hand, first, true);
+  let bestBidQuantity = 0;
+  let bestBidSeries = 0;
   let highestOdds = 0;
 
   const game = ut.loadFromStorage();
   const totalDice = game.diceInGame;
+  const arrayLength = first ? totalDice : totalDice * 2 + 1;
 
   for (
     let currentQuantity = 1;
-    currentQuantity <= totalDice * 2;
+    currentQuantity <= arrayLength;
     currentQuantity++
   ) {
     for (let currentSeries = 0; currentSeries < 6; currentSeries++) {
       if (arr[currentQuantity - 1][currentSeries] >= risk + 0.25) {
-        bestBetSeries = currentSeries === 5 ? 1 : currentSeries + 2;
-        bestBetQuantity =
+        bestBidSeries = currentSeries === 5 ? 1 : currentSeries + 2;
+        bestBidQuantity =
           currentSeries === 5
             ? Math.floor(currentQuantity / 2)
             : currentQuantity;
@@ -188,8 +219,8 @@ function bestBid(hand, risk) {
   }
 
   return {
-    quantity: bestBetQuantity,
-    series: bestBetSeries,
+    quantity: bestBidQuantity,
+    series: bestBidSeries,
     odds: highestOdds,
   };
 }
