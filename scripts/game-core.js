@@ -12,18 +12,6 @@ export function initializeTable() {
   return firstToPlay;
 }
 
-// export function startRound() {
-//   return new Promise((resolve) => {
-//   ut.clearBids();
-//   const game = ut.loadFromStorage();
-//   game.players.forEach((player) => player.rollDice());
-//   ut.updateStorage(game);
-//   console.log("round started");
-//   console.log(game.players);
-//   resolve();}
-//   );
-// }
-
 export async function startRound() {
   ut.clearBids();
   const game = ut.loadFromStorage();

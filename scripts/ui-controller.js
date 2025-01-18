@@ -6,9 +6,8 @@ import * as cls from "./classes.js"; // for testing
 /*
 To do:
   1. Position changes according to number of players
-  2. Test "continue" button
-  3. Add +5 button for starting round
-  4. Continue run game function: core.continueRound() cannot start with player 0 because it is looking for player[i-1].bid.
+  2. Add +5 button for starting round
+  3. Continue run game function: core.continueRound() cannot start with player 0 because it is looking for player[i-1].bid.
 
 Next:
   1. Design UI and graphics
@@ -23,7 +22,7 @@ const animationSpeed = 600;
 // ----------------- Game initialization -----------------
 
 let game;
-initializeGameUI();
+ut.loadFromStorage() ? continueGame() : initializeGameUI();
 
 async function initializeGameUI() {
   game = await ut.initializeGame();
@@ -41,17 +40,43 @@ async function initializeGameUI() {
   // ut.updateStorage(game); // for testing
 
   console.log(game);
-  // Biiding array checker:
-  // const hand = [2,2,2,6,6]; // testing bidding array
-  // const arr = cls.bidArray(1, 0, hand); // testing bidding array
-  // console.log(hand) // testing bidding array
-  // console.log(arr) // testing bidding array
 
   setPlayers();
   setDiceCounter();
   const firstToPlay = core.initializeTable();
   const firstRound = true;
   newRound(firstToPlay, firstRound);
+}
+
+function continueGame() {
+  game = ut.loadFromStorage();
+  setPlayers();
+  setDiceCounter();
+  if (game.players[0].bid == "call") {
+    endRound(0);
+    return;
+  }
+  if (game.players[0].bid) {
+    placeHand(game.players[0].hand);
+    placeBid(game.players[0].bid);
+    showBids(0);
+    round(1);
+    return;
+  }
+  for (let i = 0; i < game.players.length; i++) {
+    if (game.players[i].bid) {
+      textBox(); // show number of dice in game
+      placeHand(game.players[0].hand);
+      if (game.players[i].bid == "call") {
+        call(i);
+        return;
+      }
+      round(i);
+      return;
+    }
+  }
+  placeHand(game.players[0].hand);
+  round(0);
 }
 
 // ----------------- Game flow -----------------
@@ -245,26 +270,19 @@ export function placeHand(hand) {
   document.querySelector(".dice-container").innerHTML = dice;
 }
 
-function placeBid() {
+function placeBid(bid) {
   const game = ut.loadFromStorage();
-  const chosenDie = ctr.chosenDie;
   const numberElement = document.querySelector(".number");
+  let chosenDie = ctr.chosenDie;
+  let numberOfDice = numberElement.textContent;
 
-  ////////////////
-  if (!numberElement) {
-    console.error("Element with class .number does not exist.");
-    return;
+  if (bid) {
+    numberOfDice = bid[0];
+    chosenDie = ut.convertDiceType(bid[1]);
+  } else {
+    game.players[0].bid = [Number(numberOfDice), ut.convertDiceType(chosenDie)];
+    ut.updateStorage(game);
   }
-
-  const numberOfDice = numberElement.textContent;
-  if (!numberOfDice) {
-    console.error(".number exists but has no text content.");
-    return;
-  }
-  /////////////////
-
-  game.players[0].bid = [Number(numberOfDice), ut.convertDiceType(chosenDie)];
-  ut.updateStorage(game);
   document
     .querySelector(".player1")
     .querySelector(
