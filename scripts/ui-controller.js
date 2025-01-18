@@ -1,7 +1,6 @@
 import * as ut from "./utils.js";
 import * as ctr from "./controls.js";
 import * as core from "./game-core.js";
-import * as cls from "./classes.js"; // for testing
 
 /*
 To do:
@@ -38,8 +37,6 @@ async function initializeGameUI() {
   // game.players[5].numberOfDice = 1; // for testing
   // game.diceInGame -= 4; // for testing
   // ut.updateStorage(game); // for testing
-
-  console.log(game);
 
   setPlayers();
   setDiceCounter();
@@ -82,7 +79,6 @@ function continueGame() {
 // ----------------- Game flow -----------------
 
 async function newRound(firstToPlay, firstRound = false) {
-  console.log(`new round player index ${firstToPlay} starts, roll dice`);
   await roll();
   if (!firstRound) {
     clearTable();
@@ -115,7 +111,6 @@ async function round(firstToPlay) {
   if (!playerCalled) {
     playMove();
   } else {
-    console.log("end round");
     endRound(playerCalled);
   }
 }
@@ -174,7 +169,7 @@ async function endGame(nextPlayer) {
   }
 }
 
-async function continueRunGame(openningPlayer) { // not working yet
+async function autoRunGame (openningPlayer) { // not working yet
   let currentPlayer = openningPlayer;
   let playerCalled;
 
@@ -188,7 +183,6 @@ async function continueRunGame(openningPlayer) { // not working yet
     // Reset playerCalled for each round
     playerCalled = null;
     while (!playerCalled) {
-      console.log(`continue round from player ${currentPlayer} `);
       playerCalled = await core.continueRound(currentPlayer);
       await showBids(currentPlayer);
       currentPlayer = 0;
@@ -210,13 +204,11 @@ async function continueRunGame(openningPlayer) { // not working yet
 function setPlayers() {
   const game = ut.loadFromStorage();
   let id;
-  console.log("game befor set", game);
   let items = `<img src="/images/table4.jpg" class="table">
   <a class="menu-button exit" href="home.html">x</a>
   <div class="dice-in-game">Dice in game: ${game.diceInGame}</div>`;
   for (let i = 1; i <= game.numberOfPlayers; i++) {
     id = game.players[i - 1].jsId;
-    console.log(`player ${i} id: ${id}`);
     items += `<div class="player-grid player${i} position-${id}">
         <div class="bid"></div>
         <div class="cup-container">
@@ -295,7 +287,6 @@ async function showBids(startingPlayer) {
   const game = ut.loadFromStorage();
   for (let i = startingPlayer || 1; i < game.numberOfPlayers; i++) {
     await new Promise((resolve) => {
-      console.log(`Player ${i + 1} bid: ${game.players[i].bid}`);
       // set player's turn mark
       document
         .querySelector(`.player${i + 1}`)
@@ -335,7 +326,6 @@ async function showHands(playerCalled) {
   const game = ut.loadFromStorage();
   const lastPlayerToBid = ut.previousPlayer(playerCalled);
   const lastBid = game.players[lastPlayerToBid].bid;
-  console.log(lastBid);
 
   let diceCounter = 0;
 
@@ -358,12 +348,10 @@ async function showHands(playerCalled) {
 }
 
 async function call(playerCalled) {
-  console.log(`Player ${playerCalled + 1} called liar!`);
   ctr.clearControls();
   const game = ut.loadFromStorage();
   const lastPlayerToBid = ut.previousPlayer(playerCalled);
   const lastBid = game.players[lastPlayerToBid].bid;
-  console.log(`last player to bid: ${lastPlayerToBid}, last bid: ${lastBid}`);
   clearTable();
   document
     .querySelector(`.player${playerCalled + 1}`)
@@ -376,7 +364,6 @@ async function call(playerCalled) {
     lastBid[1]
   )}.png" class="dice-image padding-left">`;
   await showHands(playerCalled);
-  console.log("ready for next round");
 }
 
 function generateDiceImages(hand, lastBid, diceCounter) {
@@ -422,7 +409,6 @@ async function showPlayerHand(player, index, lastBid, diceCounter, delay) {
 }
 
 function markWinner(playerId) {
-  console.log(`Player ${playerId} wins!`);
   document
     .querySelector(`.position-${playerId}`)
     .querySelector(".cup-container")

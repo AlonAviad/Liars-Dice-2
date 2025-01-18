@@ -20,8 +20,6 @@ export async function startRound() {
   await Promise.all(game.players.map((player) => player.rollDice()));
 
   ut.updateStorage(game);
-  console.log("round started");
-  console.log(game.players);
 }
 
 export function continueRound(start) {
@@ -29,15 +27,11 @@ export function continueRound(start) {
   return new Promise((resolve) => {
     for (let i = start || 1; i < game.numberOfPlayers; i++) {
       let newBid = game.players[i].makeBid(game.players[i - 1].bid);
-      console.log(`player ${i + 1} placed bid: ${newBid}`);
-      console.log(`Player hand: ${game.players[i].hand}`);
       if (newBid === "call") {
-        console.log(`player ${i + 1} calls`);
         ut.updateStorage(game);
         resolve(i);
         break;
       }
-      // console.log(`Player ${i + 1} placed bid: ${game.players[i].bid}`);
     }
     ut.updateStorage(game);
     resolve(0);
@@ -57,9 +51,6 @@ export async function endRound(callingPlayer) {
     loser = callingPlayer;
   }
 
-  console.log(
-    `player ${winner + 1} wins\nplayer ${loser + 1} loses and loses a die`
-  );
   // Handle loser losing a die
   game.players[loser].numberOfDice--;
   game.diceInGame--;
@@ -110,7 +101,6 @@ export function checkWinner(playerCalled) {
 function removePlayer(loser) {
   return new Promise((resolve) => {
     let game = ut.loadFromStorage();
-    console.log(`player ${loser + 1} removed`);
     game.players.splice(loser, 1);
     game.numberOfPlayers--;
     ut.updateStorage(game);

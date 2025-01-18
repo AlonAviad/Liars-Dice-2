@@ -251,7 +251,6 @@ export function clearControls() {
   removeButtonKeydownListener();
   removeAddSubKeydownListener();
   removeButtonKeydownListener();
-  console.log("clearing controls");
   chosenDie = null;
   numberOfDice.textContent = "";
   document.getElementById("bid-buttons").innerHTML = "";
@@ -273,7 +272,6 @@ function removeChosenDie() {
 }
 
 function chooseDice(die) {
-  console.log("Chosen die:", die);
   minBid = ut.findMinBid(ut.convertDiceType(die));
   chosenDie == null
     ? (numberOfDice.textContent = Math.max(minBid, numberOfDice.textContent))

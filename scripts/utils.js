@@ -17,10 +17,8 @@ export function defaultSettings() {
 
 export function initializeGame() {
   return new Promise((resolve,) => {
-    console.log('init');
     defaultSettings();
     if (!localStorage.getItem('game')) {
-      console.log("new game started");
         const game = new Game();
         updateStorage(game);
         resolve(game);
@@ -42,7 +40,6 @@ export function loadFromStorage() {
 
 export function updateStorage(game) {
   localStorage.setItem("game", JSON.stringify(game.toJSON()));
-  console.log("storage updated"); 
 }
 
 //------------------ UI AND CORE HELPERS ---------------------------
@@ -58,7 +55,6 @@ export function convertDiceType(die) {
 
 export function clearBids() {
   const game = loadFromStorage();
-  console.log("clear bids")
   game.players.forEach(player => {
     player.bid = null;
   });
@@ -107,7 +103,6 @@ export function bidArray(quantity, series, hand, firstBid = false, best = false)
   }
   
   const diceInGame =  game.diceInGame;
-  console.log(`firstBid = ${firstBid}`);
   let arrayLength;
   if (firstBid) {
     arrayLength = diceInGame;
@@ -127,7 +122,6 @@ export function bidArray(quantity, series, hand, firstBid = false, best = false)
       }
     }
   } 
-  console.log(bidArray);
   return bidArray;
 }
 
